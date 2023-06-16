@@ -31,6 +31,7 @@ class iload:
     def __init__(self):
         self.d = date.today() #today's date
         #params are top, left, bottom and right 
+        #params3 is just to get date and inv number
         #'e' : {'ws' :'Bookmark', 'params' : [252,25,612,576], 'style' : 'pdf'},
         self.ws_dict = {'a' : {'ws' :'Boon', 'params' : [288,72,792,540], 'params2' : [72,72,792,540], 
                                                     'params3' : [172,240,252,324], 'style' : 'pdf'},
@@ -43,7 +44,7 @@ class iload:
                         'f' : {'ws' :'66', 'params3' : [108, 72, 151, 468], 'style' : 'pdf'},  #[126, 108, 151, 468]
                         'g' : {'ws' :'Octagon', 'params' : [4.05*72, 0, 9*72, 8.5*72], 
                                 'params2' : [0.75*72, 1.75*72, 2.5*72, 5.5*72, 7*72,7.5*72],
-                                'params3' : [1.5*72,0,2*72,12*72],'style' : 'pdf'},
+                                'params3' : [3*72,2*72,3.5*72,8*72],'style' : 'pdf'},
                         'h' : {'ws': 'comb', 'params' : [252,25,612,576], 'style' : 'xl'},
                         'moon': {'ws': 'moonraker', 'params'  : [288,72,792,540], 'params2' : [72,72,792,540], 'params3' : [172,240,252,324], 'style' : 'pdf'},
                         'bs': {'ws': 'bestsellers', 'params'  : [288,72,792,540], 'params2' : [72,72,792,540], 'params3' : [172,240,252,324], 'style' : 'pdf'}}

@@ -189,5 +189,16 @@ def str_date_to_sql(d):
             try:
                 d = datetime.strptime(d, '%d %b %y')
             except:
-                d = datetime.strptime(d, '%d%b%Y')
+                try:
+                    d = datetime.strptime(d, '%d%b%Y')
+                except:
+                    d = datetime.strptime(d, '%d.%m.%y')
     return f'{d.year}-{"{:02d}".format(d.month)}-{"{:02d}".format(d.day)}'
+
+def numfix(z):
+    if isinstance(z,float):
+        return True
+    elif isinstance(z,int):
+        return True
+    else:
+        return re.sub('[^0-9.]', '', z)
