@@ -105,7 +105,7 @@ class iload:
                 for invoice in invoice_list:
                     my_doc = my_path +'/' + invoice
                     print(my_doc)
-                    if my_doc in ['mls/inv/invpdfs/boon_inv/.DS_Store']:
+                    if '.DS_Store' in invoice:
                         pass
                     else:
                         my_date, inv_num = get_date_num(my_doc, area_params = self.ws_dict[ws]['params3'],my_ws=ws)
@@ -190,16 +190,15 @@ class iload:
             tab = tabula.read_pdf(my_doc, pages='all',guess=False, area= self.ws_dict[ws]['params'],lattice=True) 
             if len(tab[0])==0:
                 tab[0] = tabula.read_pdf(my_doc, pages=1,lattice=True)[1]
-            tab[0]=tab[0].rename(columns = {'Item':'ISBN'})
-            tab[0]=tab[0].rename(columns = {'Price':'cost'})
-            tab[0]=tab[0].rename(columns = {'Total\rPrice\r(*)inc vat':'totalprice'})
+            tab[0]=tab[0].rename(columns = {'Item':'ISBN', 'Price':'cost', 'Total\rPrice\r(*)inc vat':'totalprice'})
 
         elif ws=='c':
             tab = tabula.read_pdf(my_doc, pages='all',guess=False, area= self.ws_dict[ws]['params'],columns = self.ws_dict[ws]['params2']) 
             tab[0] = drop_nas(tab[0])
             tab[0]['cost'] = tab[0]['Price']*0.5
             tab[0]['totalprice'] = tab[0]['cost'] * tab[0]['Qty']
-            tab[0] = tab[0][['ISBN/Bar Code','Qty','Title', 'cost', 'totalprice']]
+            tab[0]=tab[0].rename(columns = {'ISBN/Bar Code':'ISBN'})
+            tab[0] = tab[0][['ISBN','Qty','Title', 'cost', 'totalprice']]
 
         elif ws=='d':
             tab = tabula.read_pdf(my_doc, pages='all',guess=False, area= self.ws_dict[ws]['params'],columns = self.ws_dict[ws]['params2']) 
@@ -211,7 +210,8 @@ class iload:
                 tab[0]['PRICE'] = pd.to_numeric(tab[0]['PRICE.1'])
             tab[0]['DISC'] = pd.to_numeric(tab[0]['DISC'])
             tab[0]['cost'] = tab[0]['PRICE']*(100 - tab[0]['DISC'])/100
-            tab[0] = tab[0][['ISBN QT','Y','TITLE', 'cost', 'VALUE']]
+            tab[0]=tab[0].rename(columns = {'ISBN QT':'ISBN', 'TITLE' : 'Title','VALUE': 'totalprice', 'Y':'Qty'})
+            tab[0] = tab[0][['ISBN','Qty','Title', 'cost', 'totalprice']]
 
         elif ws=='f':
             print(my_doc)   
@@ -249,8 +249,7 @@ class iload:
 
         elif ws=='moon':
             tab = tabula.read_pdf(my_doc)
-            tab[0]=tab[0].rename(columns = {'Quantity':'Qty'})
-            tab[0]=tab[0].rename(columns = {'Amount GBP':'totalprice'})
+            tab[0]=tab[0].rename(columns = {'Quantity':'Qty', 'Amount GBP':'totalprice'})
             tab[0] = tab[0][tab[0]['Qty'].notna()]
             tab[0][['ISBN', 'Title']] = tab[0]['Description'].str.split(" - ", n=1,expand = True)
             tab[0][['cost', 'vat']] = tab[0]['Unit Price VAT'].str.split(" ", n=1, expand = True)
