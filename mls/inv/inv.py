@@ -4,8 +4,7 @@ from decouple import config
 from datetime import date, datetime
 import pandas as pd
 from mlsapp.models import *
-from mlsapp.ss import null_to_blank
-from mlsapp.utils import find_dims, date_to_sql, isValidISBN13
+from mlsapp.utils import find_dims, date_to_sql, isValidISBN13, null_to_blank, str_date_to_sql
 from .dtnum import get_date_num
 import re
 import PyPDF2
@@ -26,21 +25,6 @@ def inv_tidy():
             for q in query[1:]:
                 q.title=anchor
                 q.save()
-        
-
-def str_date_to_sql(d):
-    #returns datetime date as sql string date
-    try:
-        d = datetime.strptime(d, '%d/%m/%Y')
-    except:
-        try:
-            d = datetime.strptime(d, '%d/%m/%y')
-        except:
-            try:
-                d = datetime.strptime(d, '%d %b %y')
-            except:
-                d = datetime.strptime(d, '%d%b%Y')
-    return f'{d.year}-{"{:02d}".format(d.month)}-{"{:02d}".format(d.day)}'
 
 class iload:
 
@@ -103,18 +87,9 @@ class iload:
                 return my_isbn + "_badisbn"
 
 
-    
-    def load_all_invs(self):
-        for w in self.ws_list:
-            self.load_type(w)
-
     def num_pages(self,doc):
         reader = PyPDF2.PdfReader(doc)
         return len(reader.pages)
-
-    def load_type(self,w):
-        #check number of pages, scrape data, turn into correct form for model
-        pass
 
     def find_new_inv(self,selection='all'):
         #******* WORKING ON THIS *********
@@ -180,7 +155,10 @@ class iload:
                 r = list(tab.iloc[i])
                 self.save_to_model(r)
                 
-
+    def check_if_entry_exists():
+        #checks if entry is already in the DB and returns a bool
+        x=0
+        return x
     
     def save_to_model(self,r):
             try:
