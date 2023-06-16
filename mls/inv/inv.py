@@ -99,13 +99,13 @@ class iload:
             my_select = [selection]
         for ws in my_select:
             if self.ws_dict[ws]['style']=='pdf':
-                my_path = 'mlsapp/inv_get/' + self.ws_dict[ws]['ws'].lower() + '_inv'
+                my_path = 'mls/inv/invpdfs/' + self.ws_dict[ws]['ws'].lower() + '_inv'
                 invoice_list = os.listdir(my_path)
                 existing_inv_nums = list(set([x[0] for x in InvoiceData.objects.filter(wholesaler = self.ws_dict[ws]['ws']).values_list('inv_num')]))
                 for invoice in invoice_list:
                     my_doc = my_path +'/' + invoice
                     print(my_doc)
-                    if my_doc in ['mlsapp/inv_get/boon_inv/.DS_Store']:
+                    if my_doc in ['mls/inv/invpdfs/boon_inv/.DS_Store']:
                         pass
                     else:
                         my_date, inv_num = get_date_num(my_doc, area_params = self.ws_dict[ws]['params3'],my_ws=ws)
@@ -120,7 +120,7 @@ class iload:
                                 self.save_to_model(r)
             elif self.ws_dict[ws]['style']=='xl':
                 existing_inv_nums = list(set([x[0] for x in InvoiceData.objects.filter(wholesaler = self.ws_dict[ws]['ws']).values_list('inv_num')]))
-                my_path = 'mlsapp/inv_get/' + self.ws_dict[ws]['ws'].lower() + '_inv'
+                my_path = 'mls/inv/invpdfs/' + self.ws_dict[ws]['ws'].lower() + '_inv'
                 invoice_xl = os.listdir(my_path)
                 if '.DS_Store' in invoice_xl:
                     invoice_xl.remove('.DS_Store')
@@ -135,7 +135,7 @@ class iload:
     
     def ext_dir(self,ws):
         if self.ws_dict[ws]['style']=='pdf':
-            my_path = 'mlsapp/inv_get/' + self.ws_dict[ws]['ws'].lower() + '_inv'
+            my_path = 'mlsapp/invs/invpdfs/' + self.ws_dict[ws]['ws'].lower() + '_inv'
             invoice_list = os.listdir(my_path)
             p_ones=[]
             for invoice in invoice_list:
@@ -146,7 +146,7 @@ class iload:
                     self.save_to_model(r)
                      
         elif self.ws_dict[ws]['style']=='xl':
-            my_path = 'mlsapp/inv_get/' + self.ws_dict[ws]['ws'].lower() + '_inv'
+            my_path = 'mlsapp/inv/invpdfs/' + self.ws_dict[ws]['ws'].lower() + '_inv'
             invoice_xl = os.listdir(my_path)
             if '.DS_Store' in invoice_xl:
                 invoice_xl.remove('.DS_Store')
@@ -184,24 +184,25 @@ class iload:
 
     def read_tab(self,my_doc, ws):
         
-        #candd = tabula.read_pdf(my_doc, pages=1,guess=False, area=self.ws_dict[ws]['params3'])[0]
         my_date, inv_num = get_date_num(my_doc, area_params = self.ws_dict[ws]['params3'],my_ws=ws)
+
         if ws=='a': 
             tab = tabula.read_pdf(my_doc, pages='all',guess=False, area= self.ws_dict[ws]['params'],lattice=True) 
-            #my_date = candd.columns[1]
-            #inv_num = int(candd[my_date][0])
+            if len(tab[0])==0:
+                tab[0] = tabula.read_pdf(my_doc, pages=1,lattice=True)[1]
+            tab[0]=tab[0].rename(columns = {'Item':'ISBN'})
+            tab[0]=tab[0].rename(columns = {'Price':'cost'})
+            tab[0]=tab[0].rename(columns = {'Total\rPrice\r(*)inc vat':'totalprice'})
+
         elif ws=='c':
             tab = tabula.read_pdf(my_doc, pages='all',guess=False, area= self.ws_dict[ws]['params'],columns = self.ws_dict[ws]['params2']) 
-            #inv_num = int(candd.columns[1])
-            #my_date = candd[candd.columns[1]].iloc[0]
             tab[0] = drop_nas(tab[0])
             tab[0]['cost'] = tab[0]['Price']*0.5
             tab[0]['totalprice'] = tab[0]['cost'] * tab[0]['Qty']
             tab[0] = tab[0][['ISBN/Bar Code','Qty','Title', 'cost', 'totalprice']]
+
         elif ws=='d':
             tab = tabula.read_pdf(my_doc, pages='all',guess=False, area= self.ws_dict[ws]['params'],columns = self.ws_dict[ws]['params2']) 
-            #inv_num = int(candd.columns[1])
-            #my_date = candd.columns[3]
             tab[0] = tab[0][~tab[0]['AUTHOR'].isin(['GARDNERS BOOKS', 'gardners.com'])]
             tab[0] = drop_nas(tab[0])
             try:
@@ -211,26 +212,16 @@ class iload:
             tab[0]['DISC'] = pd.to_numeric(tab[0]['DISC'])
             tab[0]['cost'] = tab[0]['PRICE']*(100 - tab[0]['DISC'])/100
             tab[0] = tab[0][['ISBN QT','Y','TITLE', 'cost', 'VALUE']]
+
         elif ws=='f':
             print(my_doc)   
             tab = tabula.read_pdf(my_doc, pages=1,lattice=True)
             print(tab[3])
-        
-            # try:
-            #     inv_num = int(candd.columns[0][-5:])
-            #     my_date = candd.columns[1][-10:]
-            # except:
-            #     candd = tabula.read_pdf(my_doc, pages=1,guess=False, area=[95,0,128,632])[0]
-            #     inv_num = int(candd.columns[0][-5:])
-            #     my_date = candd.columns[2]
-
             column_find = tab[3].columns[5]
             tab[3] = tab[3][tab[3]['ISBN'].notna() & tab[3]['Order value'].notna()]   
             tab[3] = tab[3][~tab[3]['Order value'].isin(['£0.00'])]
             tab[3] = tab[3][tab[3][column_find]!='ck']   
             tab[0] = tab[3].copy()
-            
-            #print(tab[0])
             tab[0]['cost'] = pd.to_numeric(tab[0]['Cost\rprice'].str.replace('£', ''))
             try:
                 tab[0][column_find]=tab[0][column_find].str.replace(" ","")
@@ -239,7 +230,7 @@ class iload:
             tab[0]['Qty'] =  pd.to_numeric(tab[0][column_find])
             tab[0]['totalprice'] = tab[0]['cost'] * tab[0]['Qty']
             tab[0] = tab[0][['ISBN','Qty','Title', 'cost', 'totalprice']]
-            #print(tab[0])
+
         elif ws=='g':
             tab = tabula.read_pdf(my_doc, pages=1, guess =False, 
                       area=self.ws_dict[ws]['params'], columns = self.ws_dict[ws]['params2'],
@@ -248,12 +239,14 @@ class iload:
             tab[0] = tab[0][tab[0][tab[0].columns[0]].notna() & tab[0][tab[0].columns[1]].notna() & tab[0][tab[0].columns[3]].notna() & tab[0][tab[0].columns[5]].notna()]
             tab[0]['cost'] = tab[0]['cost'].map(lambda x: x.rstrip(' Each'))
             tab[0] = tab[0][['ISBN','Qty','Title','cost','totalprice']]
+
         elif ws=='bs':
             tab = tabula.read_pdf(my_doc)
             tab[0][['net_weight', 'ISBN']] = tab[0]['Net Weight (g) ISBN'].str.split(" ", expand = True)
             tab[0][['totalprice', 'vat']] = tab[0]['Net Total £ Vat%'].str.split(" ", expand = True)
             tab[0]=tab[0].rename(columns = {'Net £':'cost'})
             tab[0] = tab[0][['ISBN','Qty','Title','cost','totalprice']]
+
         elif ws=='moon':
             tab = tabula.read_pdf(my_doc)
             tab[0]=tab[0].rename(columns = {'Quantity':'Qty'})
@@ -266,6 +259,8 @@ class iload:
         n = self.num_pages(my_doc)
         if len(tab[0])==0:
             tab[0] = tabula.read_pdf(my_doc, pages=1,lattice=True)[1]
+        tab[0]['cost'] = tab[0]['cost'].apply(lambda z:  numfix(z))
+        tab[0]['totalprice'] = tab[0]['totalprice'].apply(lambda z:  numfix(z))
         all_pages = [drop_nas(tab[0])]
         #print(all_pages)
         if n>1:        
@@ -284,6 +279,7 @@ class iload:
             ret['date'] = f'{d.year}-{"{:02d}".format(d.month)}-{"{:02d}".format(d.day)}'
         ret['inv_num'] = inv_num
         ret['wholesaler'] = self.ws_dict[ws]['ws']
+        
         print(ret)
         return ret
 
@@ -335,3 +331,11 @@ def deets_extract(my_doc,my_path):
         my_date = df[0][1][0]
         my_inv_num = df[0][1][0]
     return my_date, my_inv_num
+
+def numfix(z):
+    if isinstance(z,float):
+        return True
+    elif isinstance(z,int):
+        return True
+    else:
+        return re.sub('[^0-9.]', '', z)

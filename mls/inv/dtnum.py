@@ -6,8 +6,14 @@ import PyPDF2
 import re
 
 def get_date_num(my_doc , area_params = [172,240,252,324],my_ws='a'):
+    #gets invoice number and date from invoices in a really hacky way - try and come up with something better
     
-    object = PyPDF2.PdfReader(my_doc)
+    try:
+        object = PyPDF2.PdfReader(my_doc)
+    except:
+        #this helps with hard to find EOF tags in java for pdfs
+        my_doc_crop = reset_eof_of_pdf_return_stream(my_doc)
+        object = PyPDF2.PdfReader(my_doc_crop)
     PageObj = object.pages[0]
     Text = PageObj.extract_text()
     inv_find = re.compile('(?:Invoice:\s*|Invoice # |Inv Num:|\nNo\. |Invoice Number[ \t]+|INVOICE\s*|Invoice Date\s*\d{1,2}/\d{2}/\d{4}|InvoiceNumber\n)([0-9]*)')
@@ -35,3 +41,16 @@ def get_date_num(my_doc , area_params = [172,240,252,324],my_ws='a'):
             print('error')
      
     return my_date, my_num
+
+def reset_eof_of_pdf_return_stream(my_pdf):
+    with open(my_pdf, 'rb') as p:
+        txt = (p.readlines())
+    # find the line position of the EOF
+    for i, x in enumerate(txt[::-1]):
+        if b'%%EOF' in x:
+            actual_line = len(txt)-i
+            print(f'EOF found at line position {-i} = actual {actual_line}, with value {x}')
+            break
+
+    # return the list up to that point
+    return txt[:actual_line]
