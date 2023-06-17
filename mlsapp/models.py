@@ -33,3 +33,8 @@ class SalesData(models.Model):
     postage = models.FloatField(default=0)
     wac = models.FloatField(default=1)
     profit = models.FloatField(default=1)
+    
+class SkuMap(models.Model):
+    book = models.ForeignKey(static, on_delete=models.CASCADE,)
+    sku = models.CharField(max_length=13)
+    status = models.CharField(max_length=13, default = 'Active')

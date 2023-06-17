@@ -1,12 +1,12 @@
 from mlsapp.models import *
 from mlsapp.utils import *
-from mlsapp.ip import load_one_sr
+from mls.ip import load_one_sr
 from mlsapp.utils import null_to_blank
 import csv
 
 dodge = ['FS606', 'FS605', 'FS622',	'FS622', 'XDC349', 'IRIS020', 'IRIS035',
         'ARI022', 'NOTE039', 'NOTE050',	'NOTE056', 'NOTE056',	
-        'NOTE001', 'CR047',
+        'NOTE001', 'CR047', 'A0-LPEX-6R6P',
         'B07CL5KHVJ',	'B07CS7CDVC',	'B07CS33NSZ',	'B07CS33NSZ',	'B07DKHV41T',	'B07M7PGLZX',	'B07M7PGLZX',	'XDC349',	'B078YYHW4Z',	
         'B094JNPG47',	'B07C53MWXM',	'B07N36YS16',	'B085LMMNXC',	'NOTE056',	'NOTE056',	'B079FPCSKS',	'B00OV3ZY76', 'B085TRDSD7','B085TRDSD7']
 
@@ -37,7 +37,7 @@ def load_skus(reset=False):
     isbn_dict = create_dict()
     if reset:
         SkuMap.objects.all().delete() 
-    with open("mlsapp/s_get/skumap.csv", "r") as f:
+    with open("mls/sd/skumap.csv", "r") as f:
         reader = csv.reader(f)
         counter = -1
         for row in reader:
