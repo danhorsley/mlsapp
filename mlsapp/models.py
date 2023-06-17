@@ -22,3 +22,14 @@ class InvoiceData(models.Model):
     date = models.DateField()
     inv_num = models.IntegerField(default=0)
     wholesaler = models.CharField(max_length=1)
+    
+class SalesData(models.Model):
+    book = models.ForeignKey(static, on_delete=models.CASCADE,)
+    date = models.DateTimeField()
+    quantity = models.IntegerField(default=0)
+    price = models.FloatField(default=1)
+    post_crd = models.FloatField(default=0)
+    salesfees = models.FloatField(default=0)
+    postage = models.FloatField(default=0)
+    wac = models.FloatField(default=1)
+    profit = models.FloatField(default=1)

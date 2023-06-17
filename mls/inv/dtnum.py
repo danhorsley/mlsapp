@@ -8,12 +8,12 @@ from mlsapp.utils import numfix
 
 def get_date_num(my_doc , area_params = [172,240,252,324],my_ws='a'):
     #gets invoice number and date from invoices in a really hacky way - try and come up with something better
-    try:
-        object = PyPDF2.PdfReader(my_doc)
-    except:
-        #this helps with hard to find EOF tags in java for pdfs
-        my_doc_crop = reset_eof_of_pdf_return_stream(my_doc)
-        object = PyPDF2.PdfReader(my_doc_crop)
+    # try:
+    object = PyPDF2.PdfReader(my_doc)
+    # except:
+    #     #this helps with hard to find EOF tags in java for pdfs
+    #     my_doc_crop = reset_eof_of_pdf_return_stream(my_doc)
+    #     object = PyPDF2.PdfReader(my_doc_crop)
     PageObj = object.pages[0]
     Text = PageObj.extract_text()
     inv_find = re.compile('(?:Invoice:\s*|Invoice # |Inv Num:|\nNo\. |Invoice Number[ \t]+|INVOICE\s*|Invoice Date\s*\d{1,2}/\d{2}/\d{4}|InvoiceNumber\n|Invoice Number\s*)([0-9]*)')
@@ -53,7 +53,7 @@ def get_date_num(my_doc , area_params = [172,240,252,324],my_ws='a'):
             print('error')
         try:
             #catches if octagon inv in a strange format
-            print("trigger**")
+            #print("trigger**")
             if my_ws == 'g' and my_date =='' or my_num=='':
                     tab = tabula.read_pdf(my_doc, pages=1, guess=False, area = area_params)
                     my_num = int(tab[0].columns[0][-7:])
