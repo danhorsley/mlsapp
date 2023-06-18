@@ -15,7 +15,7 @@ def spop():
     sku_dict = {i[2] : i[1] for i in SkuMap.objects.all().values_list()}
     rejects = []
     wd = wac_dict()
-    with open("mlsapp/s_get/sd.csv", "r") as f:
+    with open("mls/sd/sd.csv", "r") as f:
             reader = csv.reader(f)
             next(reader)
             for row in reader:
