@@ -23,6 +23,15 @@ class InvoiceData(models.Model):
     inv_num = models.IntegerField(default=0)
     wholesaler = models.CharField(max_length=1)
     
+class InvReader(models.Model):
+    ws_name = models.CharField(max_length=25)
+    invispdf = models.BooleanField(default=1)
+    params1 = models.JSONField()
+    params2 = models.JSONField()
+    params3 = models.JSONField()
+    regex_num = models.CharField(max_length=50)
+    regex_date = models.CharField(max_length=50)
+    
 class SalesData(models.Model):
     book = models.ForeignKey(static, on_delete=models.CASCADE,)
     date = models.DateTimeField()
