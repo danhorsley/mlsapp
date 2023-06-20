@@ -120,7 +120,12 @@ class iload:
                                 r = list(temp_inv.iloc[i])
                                 self.save_to_model(r)
             elif self.ws_dict[ws]['style']=='xl':
-                existing_inv_nums = list(set([x[0] for x in InvoiceData.objects.filter(wholesaler = self.ws_dict[ws]['ws']).values_list('inv_num')]))
+                if self.ws_dict[ws]=='h' :
+                    comb_ws_list = ['Great Jones', 'Texas Bookman', 'Strathearn', 
+                                    'CKingdom', 'Bookmark', 'Pumpkin', 'SassandBelle', 'PoundWholesale', 'Greenvale']
+                    existing_inv_nums = list(set([x[0] for x in InvoiceData.objects.filter(wholesaler__in = comb_ws_list).values_list('inv_num')]))
+                else:
+                    existing_inv_nums = list(set([x[0] for x in InvoiceData.objects.filter(wholesaler = self.ws_dict[ws]['ws']).values_list('inv_num')]))
                 my_path = 'mls/inv/invpdfs/' + self.ws_dict[ws]['ws'].lower() + '_inv'
                 invoice_xl = os.listdir(my_path)
                 if '.DS_Store' in invoice_xl:
@@ -128,7 +133,7 @@ class iload:
                 tab = pd.read_excel(my_path + '/' + invoice_xl[0])
                 for i in range(len(tab)):
                     r = list(tab.iloc[i])
-                    if r[6] in existing_inv_nums:
+                    if int(r[6]) in existing_inv_nums:
                         pass
                     else:
                         self.save_to_model(r)

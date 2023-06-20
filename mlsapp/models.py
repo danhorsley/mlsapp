@@ -24,9 +24,10 @@ class InvoiceData(models.Model):
     wholesaler = models.CharField(max_length=1)
     
 class InvReader(models.Model):
+    #params are inches in the order top,left, bottom right
     ws_name = models.CharField(max_length=25)
     invispdf = models.BooleanField(default=1)
-    params1 = models.JSONField()
+    params1 = models.JSONField() 
     params2 = models.JSONField()
     params3 = models.JSONField()
     regex_num = models.CharField(max_length=50)
