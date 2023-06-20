@@ -48,3 +48,24 @@ class SkuMap(models.Model):
     book = models.ForeignKey(static, on_delete=models.CASCADE,)
     sku = models.CharField(max_length=13)
     status = models.CharField(max_length=13, default = 'Active')
+    
+class KeepaJSONoffers(models.Model):
+    #stores the query for a product on a particular day using ivnoice data as base
+    #query includes buy box seller ID
+    #this can later be accessed to populate TS models etc
+    book = models.ForeignKey(static, on_delete=models.CASCADE,)
+    jf = models.JSONField()
+    date = models.DateTimeField()
+    
+class KeepaMAVG(models.Model):
+    #monthly averages of relevant data for all products that have been in invoicedata
+    book = models.ForeignKey(static, on_delete=models.CASCADE,)
+    date = models.DateTimeField()
+    new = models.FloatField(default=0)
+    newfba = models.FloatField(default=0)
+    newfbm = models.FloatField(default=0)
+    salesrank = models.IntegerField(default=0)
+    offerct = models.IntegerField(default=0)
+    AZBBpct30 = models.FloatField(default=0)
+    AZBBpct90 = models.FloatField(default=0)
+    AZpx = models.FloatField(default=0)
