@@ -69,3 +69,15 @@ class KeepaMAVG(models.Model):
     AZBBpct30 = models.FloatField(default=0)
     AZBBpct90 = models.FloatField(default=0)
     AZpx = models.FloatField(default=0)
+    
+class KeepaDataFXD(models.Model):
+    #fixed data for all products that have been in invoicedata
+    book = models.ForeignKey(static, on_delete=models.CASCADE,default='' )
+    cat = models.JSONField(max_length=20, default='')
+    pubdate = models.DateTimeField(default='2001-01-01')
+    pap = models.JSONField(default='')
+    h = models.IntegerField(default=0)
+    l = models.IntegerField(default=0)
+    w = models.IntegerField(default=0)
+    wt = models.IntegerField(default=0)
+    fmt = models.CharField(max_length=20, default='')

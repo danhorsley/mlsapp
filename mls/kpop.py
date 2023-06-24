@@ -1,5 +1,5 @@
 from ast import excepthandler
-from mlsapp.models import KeepaJSONoffers, KeepaMAVG, InvoiceData, static
+from mlsapp.models import KeepaJSONoffers, KeepaMAVG, InvoiceData, static, KeepaDataFXD
 from decouple import config
 import requests
 from datetime import date, datetime, timedelta
@@ -116,6 +116,43 @@ def KMAVG_pop(how = 'new'):
                 item.save()
         except:
             print("could not add last isbn printed")
+
+def kstatpop(how = 'new'):
+    existing = [y[0] for y in KeepaDataFXD.objects.all().values_list('book_id')]
+    if how == 'new':
+        content = KeepaJSONoffers.objects.exclude(book_id__in = existing)
+    else:
+        content = KeepaJSONoffers.objects.all()
+    for c in content:
+        _ = c.jf
+        td = {}
+        for detail in ['itemLength', 'itemHeight','itemWidth', 'itemWeight', 'fbaFees', 'categoryTree', 'binding', 'publicationDate']:
+            try:
+                td[detail] = c.jf[detail]
+            except:
+                if detail in ['itemLength', 'itemHeight','itemWidth', 'itemWeight']:
+                    td[detail] = 0
+                elif detail in ['publicationDate']:
+                    td[detail] = '20010101'
+                elif detail in ['fbaFees']:
+                    td[detail] = {"storageFee": 0, "storageFeeTax": 0, "pickAndPackFee": 0, "pickAndPackFeeTax": 0}
+                else:
+                    td[detail] = ''
+        for detail in td.keys():
+            if not td[detail]:
+                pd = {'itemLength': 0, 'itemHeight': 0, 'itemWidth': 0, 'itemWeight': 0, 
+                'fbaFees': {"storageFee": 0, "storageFeeTax": 0, "pickAndPackFee": 0, "pickAndPackFeeTax": 0}, 
+                'categoryTree': [{'catId': 266239, 'name': 'Books'}, {'catId': 1025612, 'name': 'Subjects'}, 
+                {'catId': 0, 'name': ''}, 
+                {'catId': 279321, 'name': ''}], 'binding': '', 'publicationDate': 20010101}
+                td[detail] = pd[detail]
+        my_book = static.objects.filter(isbn13=c.book_id)[0]
+        print(td)
+        entry = KeepaDataFXD(book = my_book, cat = td['categoryTree'], 
+                            pubdate = kdatetosql(td['publicationDate']), pap = td['fbaFees'],
+                            h = td['itemHeight'],l = td['itemLength'],w = td['itemWidth'],
+                            wt = td['itemWeight'], fmt = td ['binding'])
+        entry.save()
         
 
 def squash(my_list):
