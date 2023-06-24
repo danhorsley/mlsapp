@@ -4,7 +4,7 @@ from decouple import config
 from datetime import date, datetime
 import pandas as pd
 from mlsapp.models import *
-from mlsapp.utils import find_dims, date_to_sql, isValidISBN13, null_to_blank, str_date_to_sql
+from mlsapp.utils import find_dims, date_to_sql, isValidISBN13, null_to_blank, str_date_to_sql, numfix
 from .dtnum import get_date_num
 import re
 import PyPDF2
@@ -262,7 +262,7 @@ class iload:
             tab[0] = tab[0][['ISBN','Qty','Title','cost','totalprice']]
 
         n = self.num_pages(my_doc)
-        if len(tab[0])==0:
+        if len(tab[0])==0 and ws!='f':
             tab[0] = tabula.read_pdf(my_doc, pages=1,lattice=True)[1]
         tab[0]['cost'] = tab[0]['cost'].apply(lambda z:  numfix(z))
         tab[0]['totalprice'] = tab[0]['totalprice'].apply(lambda z:  numfix(z))
@@ -337,10 +337,3 @@ def deets_extract(my_doc,my_path):
         my_inv_num = df[0][1][0]
     return my_date, my_inv_num
 
-def numfix(z):
-    if isinstance(z,float):
-        return True
-    elif isinstance(z,int):
-        return True
-    else:
-        return re.sub('[^0-9.]', '', z)

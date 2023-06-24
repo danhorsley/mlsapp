@@ -197,8 +197,8 @@ def str_date_to_sql(d):
 
 def numfix(z):
     if isinstance(z,float):
-        return True
+        return z
     elif isinstance(z,int):
-        return True
+        return z
     else:
         return re.sub('[^0-9.]', '', z)
