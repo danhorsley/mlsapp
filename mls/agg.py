@@ -17,11 +17,11 @@ def aggf():
                 .annotate(total_inv_qty=Sum(F('quantity')))\
                 .annotate(wavg_cost = (F('total_inv_cost')/F('total_inv_qty')))
 
-    sales_agg = SalesData.objects.values('book_id').order_by('book_id')\
-                                    .annotate(total_s=Sum('price'))\
-                                    .annotate(total_pc=Sum('post_crd'))\
-                                    .annotate(total_q=Sum('quantity'))\
-                                    .annotate(total_f=Sum('salesfees'))\
+    sales_agg = SalesData.objects.values('book_id').order_by('book_id') \
+                                    .annotate(total_s=Sum(F('price') * F('quantity'))) \
+                                    .annotate(total_pc=Sum('post_crd')) \
+                                    .annotate(total_q=Sum('quantity')) \
+                                    .annotate(total_f=Sum('salesfees')) \
                                     .annotate(total_post=Sum('postage'))
     isbns = list(set([x[0] for x in InvoiceData.objects.all().values_list('book_id')]))
     minmax = {y:InvoiceData.objects.filter(book_id=y).aggregate(Min('date'),Max('date')) for y in isbns}
