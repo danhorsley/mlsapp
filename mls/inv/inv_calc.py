@@ -5,7 +5,7 @@ from django.db.models import Sum, F
 from mlsapp.models import InvoiceData, SalesData
 from mlsapp.utils import date_to_sql
 
-def ihist(my_date=date(2022, 4, 5)):
+def ihist(my_date=date(2023, 6, 1)):
     # my_date is a datetime object
     # Convert my_date to an SQL-formatted date
     sql_date = date_to_sql(my_date)

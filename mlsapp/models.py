@@ -81,3 +81,14 @@ class KeepaDataFXD(models.Model):
     w = models.IntegerField(default=0)
     wt = models.IntegerField(default=0)
     fmt = models.CharField(max_length=20, default='')
+    
+class WSInfo(models.Model):
+    wholesaler = models.CharField(max_length=100)
+    params1 = models.JSONField(default='')
+    renames = models.JSONField(default='')  #renames invoice names to conform
+    style = models.CharField(max_length=100)
+    tab_num = models.IntegerField() #to see how many tables there are before main table
+    discount = models.FloatField(default=0.5)
+    ccy = models.CharField(max_length=10)
+    terms = models.CharField(max_length=100)
+    url = models.URLField()
