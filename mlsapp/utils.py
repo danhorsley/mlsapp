@@ -202,3 +202,14 @@ def numfix(z):
         return z
     else:
         return re.sub('[^0-9.]', '', z)
+      
+def find_sleep_time(my_req,amt_left=0):
+    #adjust sleep time to take account of remaining tokens
+    tokens_left = my_req.json()['tokensLeft']
+    sleep_time = 181
+    if int(tokens_left) >= 50 : sleep_time = 120 
+    if int(tokens_left) >= 100 : sleep_time = 30
+    if int(tokens_left) >= 200 : sleep_time = 10
+    if int(tokens_left) >= 1000 : sleep_time = 1
+    print(f'you have {tokens_left} tokens left and sleep time is {sleep_time} and {amt_left} isbns remain')
+    return sleep_time

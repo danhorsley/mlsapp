@@ -92,3 +92,16 @@ class WSInfo(models.Model):
     ccy = models.CharField(max_length=10)
     terms = models.CharField(max_length=100)
     url = models.URLField()
+    
+class Offers(models.Model):
+    class KeepaJSON8(models.Model):
+        #populates offers past and present from all wholesalers
+        #it has two foreign keys - the book and the wholesaler
+        book = models.ForeignKey(static, on_delete=models.CASCADE,default='')
+        wholesaler = models.ForeignKey(WSInfo, on_delete=models.CASCADE,default='')
+        jf = models.JSONField() #the json dictionary of the keepa data
+        date = models.DateTimeField() #last time updated
+        is_live = models.BooleanField(default=True) #is this still a live offer
+        
+        class Meta:
+            unique_together = ('book', 'wholesaler')  #this mean that we can have books offered by different supl but not vice v.
