@@ -94,6 +94,7 @@ class WSInfo(models.Model):
     terms = models.CharField(max_length=100)
     url = models.URLField(default=None)
     part_comb = models.BooleanField(default=False) #is this part of combined xl ws sheet
+    csv_cols = models.JSONField(default=dict)  #renames csv offers names to conform
     
 class Offers(models.Model):
     class KeepaJSON8(models.Model):
