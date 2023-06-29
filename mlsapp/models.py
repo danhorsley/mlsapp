@@ -73,9 +73,9 @@ class KeepaMAVG(models.Model):
 class KeepaDataFXD(models.Model):
     #fixed data for all products that have been in invoicedata
     book = models.ForeignKey(static, on_delete=models.CASCADE,default='' )
-    cat = models.JSONField(max_length=20, default='')
+    cat = models.JSONField(max_length=20, default=dict)
     pubdate = models.DateTimeField(default='2001-01-01')
-    pap = models.JSONField(default='')
+    pap = models.JSONField(default=dict)
     h = models.IntegerField(default=0)
     l = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
@@ -84,14 +84,16 @@ class KeepaDataFXD(models.Model):
     
 class WSInfo(models.Model):
     wholesaler = models.CharField(max_length=100)
-    params1 = models.JSONField(default='')
-    renames = models.JSONField(default='')  #renames invoice names to conform
+    params1 = models.JSONField(default=dict)
+    renames = models.JSONField(default=dict)  #renames invoice names to conform
     style = models.CharField(max_length=100)
     tab_num = models.IntegerField() #to see how many tables there are before main table
-    discount = models.FloatField(default=0.5)
+    csv_disc = models.FloatField(default=0.5) #discount to apply to initial stock csv price
+    inv_disc = models.FloatField(default=0.5) #discount to apply to final invoice price
     ccy = models.CharField(max_length=10)
     terms = models.CharField(max_length=100)
-    url = models.URLField()
+    url = models.URLField(default=None)
+    part_comb = models.BooleanField(default=False) #is this part of combined xl ws sheet
     
 class Offers(models.Model):
     class KeepaJSON8(models.Model):

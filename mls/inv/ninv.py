@@ -12,9 +12,11 @@ def upload_ws_info_from_csv(file_path='mls/WSInfo.csv'):
                 renames=row['renames'],
                 style=row['style'],
                 tab_num=int(row['tab_num']),
-                discount=float(row['discount']),
+                csv_disc=float(row['csv_disc']),
+                inv_disc=float(row['inv_disc']),
                 ccy=row['ccy'],
                 terms=row['terms'],
-                url=row['url']
+                url=row['url'],
+                part_comb=row['part_comb']
             )
             ws_info.save()
