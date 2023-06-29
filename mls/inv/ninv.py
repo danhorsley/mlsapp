@@ -3,9 +3,10 @@ from mlsapp.models import WSInfo
 
 def upload_ws_info_from_csv(file_path='mls/WSInfo.csv'):
     WSInfo.objects.all().delete()
-    with open(file_path, 'r') as csv_file:
-        reader = csv.DictReader(csv_file)
+    with open(file_path, 'r', encoding = "ISO-8859-1") as csv_file:
+        reader = csv.DictReader(csv_file, )
         for row in reader:
+            #print(row['renames'])
             ws_info = WSInfo(
                 wholesaler=row['wholesaler'],
                 params1=row['params1'],
@@ -20,3 +21,4 @@ def upload_ws_info_from_csv(file_path='mls/WSInfo.csv'):
                 part_comb=row['part_comb']
             )
             ws_info.save()
+            
