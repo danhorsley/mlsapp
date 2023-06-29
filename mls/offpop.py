@@ -1,8 +1,9 @@
-from mlsapp.models import Offers, static
+from mlsapp.models import Offers, static, WSInfo
 from mlsapp.utils import toISBN10, date_to_sql, null_to_blank, find_dims, find_sleep_time
 from datetime import date, time
 import pandas as pd
 import requests
+import ast
 
 def offpop():
     #pops offers model
@@ -10,11 +11,13 @@ def offpop():
     #TODO add a is_live logic checker
     #TODO get  read_excel path from WSInfo
     #TODO fix logic on counter of sleep time
-
-    df = pd.read_excel('mlsapp/66full.xlsx')
-    df.columns= ['ISBN', 'Pack Qty', 'Title', 'Format',  'Available Stock',
-       'Author', 'Cover Price', 'RRP', 'Imprint', 'Category 1', 'Category 2',
-       'Unnamed: 12']
+    WSI_query = WSInfo.objects.all()
+    for i in len(range(WSI_query)):
+        df = pd.read_excel(f'mls/offer_csvs/{WSI_query[i].wholesaler}.xlsx')
+        df = pd.read_excel('mlsapp/66full.xlsx')
+        df.columns= ['ISBN', 'Pack Qty', 'Title', 'Format',  'Available Stock',
+        'Author', 'Cover Price', 'RRP', 'Imprint', 'Category 1', 'Category 2',
+        'Unnamed: 12']
     isbns66 = [str(x) for x in list(set(list(df['ISBN'])))]
     api_url = "https://api.keepa.com/"
     my_date = date_to_sql(date.today())
