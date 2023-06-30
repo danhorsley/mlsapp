@@ -8,15 +8,13 @@ import ast
 
 def offpop():
     #pops offers model
-    #TODO add a is_live logic checker
-    #TODO get  read_excel path from WSInfo
     #TODO fix logic on counter of sleep time
     WSI_query = WSInfo.objects.all()
     for ws in len(range(WSI_query)):
         df = pd.read_excel(f'mls/offer_csvs/{ws.wholesaler}.xlsx')
         df.columns= ast.literal_eval(ws.csv)
     isbn_list = [str(x) for x in list(set(list(df['ISBN'])))]
-    api_url = "https://api.keepa.com/"
+    
     my_date = date_to_sql(date.today())
     isbns_to_add=[]
     existing_isbns = [x[0] for x in Offers.objects.all().values_list('book_id')]
@@ -33,12 +31,11 @@ def offpop():
         
         try:
             my_asin = toISBN10(isbn)
-            print(isbn, my_asin, f' {num_isbns_to_add} remaining')
+            print(isbn, my_asin)
             my_book_id = check_or_create_static(isbn)
-
-            req = requests.get(api_url + f"product?key={config('k_api_key')}&domain=2&asin={my_asin}&buybox=1&offers=20")
-            sleep_time = find_sleep_time(req)
-            _ = Offers(book= my_book_id, jf = req.json()['products'][0], date = my_date)
+            req = req_to_keepa(my_asin) #get info from keepa
+            sleep_time = find_sleep_time(req, num_isbns_to_add) 
+            _ = Offers(book= my_book_id, jf = req.json()['products'][0], date = my_date, wholesaler = ws.wholesaler, is_live=True)
             _.save()
             time.sleep(sleep_time)
         except:
@@ -78,6 +75,10 @@ def check_or_create_static(isbn):
         my_book_id = static.objects.filter(isbn13=isbn)[0]
         
     return my_book_id
+
+def req_to_keepa(my_asin):
+    #returns request from keepa - possibility to increase range of options later
+    return requests.get(config('k_url') + f"product?key={config('k_api_key')}&domain=2&asin={my_asin}&buybox=1&offers=20")
             
     
     

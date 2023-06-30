@@ -83,7 +83,7 @@ class KeepaDataFXD(models.Model):
     fmt = models.CharField(max_length=20, default='')
     
 class WSInfo(models.Model):
-    wholesaler = models.CharField(max_length=100)
+    wholesaler = models.CharField(max_length=100, primary_key=True, unique=True)
     params1 = models.JSONField(default=dict)
     renames = models.JSONField(default=dict)  #renames invoice names to conform
     style = models.CharField(max_length=100)
@@ -97,14 +97,13 @@ class WSInfo(models.Model):
     csv_cols = models.JSONField(default=dict)  #renames csv offers names to conform
     
 class Offers(models.Model):
-    class KeepaJSON8(models.Model):
-        #populates offers past and present from all wholesalers
-        #it has two foreign keys - the book and the wholesaler
-        book = models.ForeignKey(static, on_delete=models.CASCADE,default='')
-        wholesaler = models.ForeignKey(WSInfo, on_delete=models.CASCADE,default='')
-        jf = models.JSONField() #the json dictionary of the keepa data
-        date = models.DateTimeField() #last time updated
-        is_live = models.BooleanField(default=True) #is this still a live offer
-        
-        class Meta:
-            unique_together = ('book', 'wholesaler')  #this mean that we can have books offered by different supl but not vice v.
+    #populates offers past and present from all wholesalers
+    #it has two foreign keys - the book and the wholesaler
+    book = models.ForeignKey(static, on_delete=models.CASCADE,default='')
+    wholesaler = models.ForeignKey(WSInfo, on_delete=models.CASCADE,default='')
+    jf = models.JSONField(default=dict) #the json dictionary of the keepa data
+    date = models.DateTimeField(default='2001-01-01') #last time updated
+    is_live = models.BooleanField(default=True) #is this still a live offer
+    
+    class Meta:
+        unique_together = ('book', 'wholesaler')  #this mean that we can have books offered by different supl but not vice v.
