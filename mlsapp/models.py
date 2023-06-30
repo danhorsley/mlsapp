@@ -12,6 +12,8 @@ class static(models.Model):
     thick = models.FloatField(default=0)
     weight = models.FloatField(default=0)
     rrp = models.FloatField(default=0)
+    category = models.CharField(max_length=50, default='')
+    description = models.CharField(max_length=500, default='')
 
 class InvoiceData(models.Model):
     book = models.ForeignKey(static, on_delete=models.CASCADE,)
@@ -94,7 +96,7 @@ class WSInfo(models.Model):
     terms = models.CharField(max_length=100)
     url = models.URLField(default=None)
     part_comb = models.BooleanField(default=False) #is this part of combined xl ws sheet
-    csv_cols = models.JSONField(default=dict)  #renames csv offers names to conform
+    #csv_cols = models.JSONField(default=dict)  #renames csv offers names to conform
     
 class Offers(models.Model):
     #populates offers past and present from all wholesalers
@@ -105,5 +107,8 @@ class Offers(models.Model):
     date = models.DateTimeField(default='2001-01-01') #last time updated
     is_live = models.BooleanField(default=True) #is this still a live offer
     
+    
     class Meta:
         unique_together = ('book', 'wholesaler')  #this mean that we can have books offered by different supl but not vice v.
+
+

@@ -1,24 +1,25 @@
 from mlsapp.models import Offers, static, WSInfo
-from mlsapp.utils import toISBN10, date_to_sql, null_to_blank, find_dims, find_sleep_time
+from mlsapp.utils import toISBN10, date_to_sql, null_to_blank, find_dims, find_sleep_time, get_google_description
 from datetime import date, time
 from decouple import config
 import pandas as pd
 import requests
+import time
 import ast
 
 def offpop(a_wholesaler):
     #pops offers model for a_wholesaler given as text
     WSI_query = WSInfo.objects.filter(wholesaler = a_wholesaler)
-    for ws in len(range(WSI_query)):
+    for ws in WSI_query:
         df = pd.read_excel(f'mls/offer_csvs/{ws.wholesaler}.xlsx')
-        df.columns= ast.literal_eval(ws.csv)
+        #df.columns= ast.literal_eval(ws.csv)
     isbn_list = [str(x) for x in list(set(list(df['ISBN'])))]
     
     my_date = date_to_sql(date.today())
     isbns_to_add=[]
     existing_isbns = [x[0] for x in Offers.objects.all().values_list('book_id')]
     
-    is_live(isbn_list, existing_isbns) #updates status of is_live in Offers
+    is_live(isbn_list, existing_isbns, ws) #updates status of is_live in Offers
     
     for isbn in isbn_list: #checks for new names to send request to keepa
         if isbn not in existing_isbns and isbn[:3]=='978':
@@ -34,7 +35,8 @@ def offpop(a_wholesaler):
             my_book_id = check_or_create_static(isbn)
             req = req_to_keepa(my_asin) #get info from keepa
             sleep_time = find_sleep_time(req, num_isbns_to_add) 
-            _ = Offers(book= my_book_id, jf = req.json()['products'][0], date = my_date, wholesaler = ws.wholesaler, is_live=True)
+            _ = Offers(book= my_book_id, jf = req.json()['products'][0], date = my_date, 
+                       wholesaler = WSInfo.objects.filter(wholesaler=ws.wholesaler)[0], is_live=True)
             _.save()
             time.sleep(sleep_time)
         except:
@@ -48,12 +50,12 @@ def is_live(isbn_list, existing_isbns, ws):
     #this function is to make very sure that is_live bool is correct at time of latest offer
     for isbn in existing_isbns:  #change to inactive anything not in current offers
         if isbn not in isbn_list:
-            temp_query = Offers.objects.filter(book_id = isbn, wholsaler = ws.wholesaler)
+            temp_query = Offers.objects.filter(book_id = isbn, wholesaler = ws.wholesaler)[0]
             temp_query.is_live = 0
             temp_query.save()
     for isbn in isbn_list: #change to active anything that has come back into stock (rare but happens)
         if isbn in existing_isbns:
-            temp_query = Offers.objects.filter(book_id = isbn, wholsaler = ws.wholesaler)
+            temp_query = Offers.objects.filter(book_id = isbn, wholesaler = ws.wholesaler)[0]
             temp_query.is_live = 0
             temp_query.save()
             
@@ -65,10 +67,17 @@ def check_or_create_static(isbn):
     except:
         dims = find_dims(isbn)
         dims = [null_to_blank(dims[i],i) for i in range(len(dims))]
+        
+        try:
+            c,d = get_google_description(isbn)
+        except:
+            c = d = ''
+        
         s = static(isbn13 = isbn, title = dims[0][:200],
                     pubdate = date_to_sql(dims[1]),
                     author = dims[2], pubber = dims[3], cover = dims[4],
-                    height = dims[5], width = dims[6], thick = dims[7], weight = dims[8], rrp = 0)
+                    height = dims[5], width = dims[6], thick = dims[7], weight = dims[8], rrp = 0,
+                    category = c, description= d )
         s.save()
         #st = static.objects.filter(isbn13=isbn)[0]
         my_book_id = static.objects.filter(isbn13=isbn)[0]
