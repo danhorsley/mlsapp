@@ -6,10 +6,9 @@ import pandas as pd
 import requests
 import ast
 
-def offpop():
-    #pops offers model
-    #TODO fix logic on counter of sleep time
-    WSI_query = WSInfo.objects.all()
+def offpop(a_wholesaler):
+    #pops offers model for a_wholesaler given as text
+    WSI_query = WSInfo.objects.filter(wholesaler = a_wholesaler)
     for ws in len(range(WSI_query)):
         df = pd.read_excel(f'mls/offer_csvs/{ws.wholesaler}.xlsx')
         df.columns= ast.literal_eval(ws.csv)

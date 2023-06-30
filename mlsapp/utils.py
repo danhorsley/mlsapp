@@ -213,3 +213,21 @@ def find_sleep_time(my_req,amt_left=0):
     if int(tokens_left) >= 1000 : sleep_time = 1
     print(f'you have {tokens_left} tokens left and sleep time is {sleep_time} and {amt_left} isbns remain')
     return sleep_time
+  
+
+def get_google_description(isbn):
+  #gets google description and category from google book api
+  base_url = "https://www.googleapis.com/books/v1/volumes?q=isbn:"
+  full_url = base_url + isbn
+  response = requests.get(full_url)
+  data = json.loads(response.text)
+  description = ''
+  categories = []
+  if "items" in data:  # if the book was found
+            book_info = data["items"][0]  # take the first found book
+            if "volumeInfo" in book_info and "categories" in book_info["volumeInfo"]:
+                categories = book_info["volumeInfo"]["categories"]
+            if "volumeInfo" in book_info and "description" in book_info["volumeInfo"]:
+                description = book_info["volumeInfo"]["description"]
+
+  return categories, description
