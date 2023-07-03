@@ -1,15 +1,18 @@
 import pandas as pd
 import numpy as np
-from datetime import date, timedelta
+import datetime
+import calendar
+from datetime import date, timedelta, datetime
+from collections import Counter
 from mlsapp.models import Offers, WSInfo
 
 def ubot(ws):
     #takes offers table and turns it into dataframe
     query = Offers.objects.filter(wholesaler=ws)
     ws_info = WSInfo.objects.filter(wholesaler=ws)[0]
-    df = pd.read_excel('mls/offer_csvs' + ws_info.wholesaler + '.xlsx')
-    df['ISBN'] = df['ISBN'].apply(str)
-    current_isbns = list(set(df66['ISBN']))
+    offer_df = pd.read_excel('mls/offer_csvs/' + ws_info.wholesaler + '.xlsx')
+    offer_df['ISBN'] = offer_df['ISBN'].apply(str)
+    current_isbns = list(set(offer_df['ISBN']))
     isbns_with_data = query.values_list('book_id', flat=True)
     frame_list = {}
     stat_list = []
@@ -17,13 +20,9 @@ def ubot(ws):
     for qq in query:
         q = qq.jf
         isbn = qq.book_id
-
-        if isbn not in current_isbns:
-            continue
-
         print(isbn)
 
-        if isbn not in isbns_with_data:
+        if isbn not in current_isbns or isbn not in isbns_with_data:
             continue
 
         sr = q['csv'][3]
@@ -49,7 +48,7 @@ def ubot(ws):
         except:
             weight = 750
 
-        inboundtransfee = 4 * weight / 14000
+        inboundtransfee = 4 * weight / 14000  #assuming £4 per 14kg box sent in 
         fba_and_inbound = fbafees + inboundtransfee
         col_list = [offers, amzn_px, newfba, newfbm, bb]
         formatted_lists = [avgmaker(x, as_list=False) for x in [sr] + col_list]
@@ -60,34 +59,33 @@ def ubot(ws):
             df[i] = df.index.map(formatted_lists[i])
 
         df.columns = ['sr', 'offers', 'amzn_px', 'newfba', 'newfbm', 'bb']
-        buypx = df[df['ISBN']==isbn]['Price'].iloc[0]*op_dict[my_ws]['price_mult']
-                    df['min_px'] = make_min_px_col(df)
-                    df['sr'] = df['sr'].interpolate()
-                    df['sr'] = df['sr'].fillna(method="ffill")
-                    df['min_px'] = df['min_px'].interpolate()
-                    df['bb'] = df['bb'].interpolate()
-                    df['bb'] = df['bb'].fillna(method="ffill")
-                    last_price = gnn(df['min_px'])
-                    sr90 = df['sr'].iloc[-3:].mean()
-                    bb90 = df['bb'].iloc[-3:].mean()
-                    azpct = 0.053 if last_price < 5 else 0.153
-                    
-                    azfees = (azpct * last_price) + 1
-                    all_costs_per = -(azfees + fba_and_inbound)
-                    mgn = (last_price-buypx+all_costs_per)/buypx
-                    
-                    nd = novdec(formatted_lists[0])
-                    
-                    stat_list.append([isbn, name, gnn(df['sr']), sr90, df['sr'].mean(), df['sr'].std(), df['sr'].min(), df['sr'].max(), pubyrs, gnn(df['offers']),mgn,
-                                                        last_price, all_costs_per, buypx, gnn(df['bb']),bb90] + nd)
-                    frame_list[isbn] = df
-                        #except:
-                            #frame_list[isbn] = df
-        ret_df = pd.DataFrame(stat_list)
-        ret_df.columns = ['isbn','title','30d','90d','alltime','std','min','max','pubyrs', 'offers','exp_mgn', 
-                                                        'min_px', 'all_costs_per', 'wavg_cost','bb30','bb90','nonxmas','xmas']
-        ret_df.to_csv(op_dict[my_ws]['save_string'])
-        return frame_list, stat_list
+        buypx = offer_df[offer_df['ISBN']==isbn]['Price'].iloc[0]*ws_info.csv_disc
+        df['min_px'] = make_min_px_col(df)
+        df['sr'] = df['sr'].interpolate()
+        df['sr'] = df['sr'].fillna(method="ffill")
+        df['min_px'] = df['min_px'].interpolate()
+        df['bb'] = df['bb'].interpolate()
+        df['bb'] = df['bb'].fillna(method="ffill")
+        last_price = gnn(df['min_px'])
+        sr90 = df['sr'].iloc[-3:].mean()
+        bb90 = df['bb'].iloc[-3:].mean()
+        azpct = 0.053 if last_price < 5 else 0.153
+        
+        azfees = (azpct * last_price) + 1
+        all_costs_per = -(azfees + fba_and_inbound)
+        mgn = (last_price-buypx+all_costs_per)/buypx
+        
+        nd = novdec(formatted_lists[0])
+        
+        stat_list.append([isbn, name, gnn(df['sr']), sr90, df['sr'].mean(), df['sr'].std(), df['sr'].min(), df['sr'].max(), pubyrs, gnn(df['offers']),mgn,
+                                            last_price, all_costs_per, buypx, gnn(df['bb']),bb90] + nd)
+        frame_list[isbn] = df
+            
+    ret_df = pd.DataFrame(stat_list)
+    ret_df.columns = ['isbn','title','30d','90d','alltime','std','min','max','pubyrs', 'offers','exp_mgn', 
+                                                    'min_px', 'all_costs_per', 'wavg_cost','bb30','bb90','nonxmas','xmas']
+    ret_df.to_csv('mls/ubot_csvs/a_new' + ws_info.wholesaler + '.csv')
+    return frame_list, stat_list
 
             
         
@@ -257,3 +255,7 @@ def fill_blanks(my_dict):
         else:
             my_dict[month_ends[i]] = my_dict[month_ends[i-1]]
     return my_dict
+
+def KTime(my_ktime):
+    _ = (int(my_ktime) + 21564000)*60
+    return datetime.utcfromtimestamp(_)
