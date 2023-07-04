@@ -5,6 +5,7 @@ import calendar
 from datetime import date, timedelta, datetime
 from collections import Counter
 from mlsapp.models import Offers, WSInfo
+from  statistics import mean
 
 def ubot(ws):
     #takes offers table and turns it into dataframe
