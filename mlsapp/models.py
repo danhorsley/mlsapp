@@ -1,9 +1,11 @@
 from django.db import models
+from django.utils import timezone
+import pytz
 
 class static(models.Model):
     isbn13 = models.CharField(max_length=13, primary_key=True, unique=True)
     title = models.CharField(max_length=250)
-    pubdate = models.DateField(default='2000-01-01')
+    pubdate = models.DateField(default=timezone.datetime(2001, 1, 1, tzinfo=pytz.UTC))
     author = models.CharField(max_length=100)
     pubber = models.CharField(max_length=100)
     cover = models.CharField(max_length=30)
@@ -76,7 +78,7 @@ class KeepaDataFXD(models.Model):
     #fixed data for all products that have been in invoicedata
     book = models.ForeignKey(static, on_delete=models.CASCADE,default='' )
     cat = models.JSONField(max_length=20, default=dict)
-    pubdate = models.DateTimeField(default='2001-01-01')
+    pubdate = models.DateTimeField(default=timezone.datetime(2001, 1, 1, tzinfo=pytz.UTC))
     pap = models.JSONField(default=dict)
     h = models.IntegerField(default=0)
     l = models.IntegerField(default=0)
@@ -104,7 +106,7 @@ class Offers(models.Model):
     book = models.ForeignKey(static, on_delete=models.CASCADE,default='')
     wholesaler = models.ForeignKey(WSInfo, on_delete=models.CASCADE,default='')
     jf = models.JSONField(default=dict) #the json dictionary of the keepa data
-    date = models.DateTimeField(default='2001-01-01') #last time updated
+    date = models.DateTimeField(default=timezone.datetime(2001, 1, 1, tzinfo=pytz.UTC)) #last time updated
     is_live = models.BooleanField(default=True) #is this still a live offer
     
     

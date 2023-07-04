@@ -10,7 +10,8 @@ from mlsapp.models import *
 
 def date_to_sql(d):
     #returns datetime date as sql string date
-    return f'{d.year}-{"{:02d}".format(d.month)}-{"{:02d}".format(d.day)}'
+      return f'{d.year}-{"{:02d}".format(d.month)}-{"{:02d}".format(d.day)}'
+
 
 def find_dims(my_isbn):
     pounds_grams = 453.592
