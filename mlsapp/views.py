@@ -29,39 +29,42 @@ def cheat_sheet(request):
         
         filtered_sales = SalesData.objects.filter(book_id=isbn)
         
-        sales_agg = filtered_sales.annotate(total_sales=Sum(F('price') * F('quantity'))) \
-                                    .annotate(total_pc=Sum('post_crd')) \
-                                    .annotate(total_q=Sum('quantity')) \
-                                    .annotate(total_f=Sum('salesfees')) \
-                                    .annotate(total_post=Sum('postage'))
         # Perform calculations on the filtered data
+        total_outlay =  invoice_agg[0].total_inv_cost
         total_units_bought = filtered_data.aggregate(total_units_bought=Sum('invoicedata__quantity'))
         total_units_sold = filtered_sales.aggregate(total_units_sold=Sum('quantity'))
-        wavg_cost = invoice_agg[0].wavg_cost
-        total_outlay =  invoice_agg[0].total_inv_cost
         total_sales = filtered_sales.aggregate(total_sales=Sum(F('price') * F('quantity')))['total_sales']
         total_post_crd = filtered_sales.aggregate(total_pc=Sum('post_crd'))['total_pc']
         total_sales_fees = filtered_sales.aggregate(total_f=Sum('salesfees'))['total_f']
         total_post = filtered_sales.aggregate(total_post=Sum('postage'))['total_post']
         total_fees_all = total_post_crd + total_sales_fees + total_post
+        avg_sales_price = total_sales /filtered_sales.aggregate(total_units_sold=Sum('quantity'))['total_units_sold']
         
         # Perform other calculations
         
         # Pass the data to the template
         context = {
-            'filtered_data': filtered_data,
+            'data' :{'title': filtered_data[0].title,
             'total_units_bought': total_units_bought['total_units_bought'],
             'total_units_sold': total_units_sold['total_units_sold'],
-            'wavg_cost' : wavg_cost,
+            'wavg_cost' : invoice_agg[0].wavg_cost,
             'total_outlay' : total_outlay,
             'total_sales' : total_sales,
             'total_post_crd' : total_post_crd,
             'total_sales_fees' : total_sales_fees,
             'total_post' : total_post,
-            'total_fees_all' :total_fees_all
-            
-            # Add other calculated values to the context
+            'total_fees_all' :total_fees_all,
+            'actual_profit' : total_sales - total_outlay + total_fees_all,
+            'avg_sales_price' : avg_sales_price,
+            'profit_per_item' : (total_sales - total_outlay + total_fees_all)/total_units_sold['total_units_sold']
+            #wholesalers
+            #inventory remaining
+            #roic
         }
+        }
+        for k in context :
+            print(k)  # Check the value of filtered_data
+        
         return render(request, 'cheat_sheet.html', context)
     
     default_context = {

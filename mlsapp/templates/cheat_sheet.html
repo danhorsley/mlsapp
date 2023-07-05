@@ -24,24 +24,20 @@
     <button type="submit">Submit</button>
   </form>
   
-  {% if filtered_data %}
-    <h2>Filtered Data:</h2>
+  
+    <h2>Item Info:</h2>
     <ul>
-      {% for item in filtered_data %}
-        <li>{{ item.title }}</li>
-        <!-- Display other relevant information -->
-      {% endfor %}
-    </ul>
     
-    <h2>Statistics:</h2>
-    <p>Total Units Bought: {{ total_units_bought }}</p>
-    <p>Total Units Sold: {{ total_units_sold }}</p>
-    <p>WAVG cost: {{ wavg_cost }}</p>
-    <p>Total Outlay: {{ total_outlay }}</p>
-    <p>Total Sales: {{ total_sales }}</p>
-    <p>Total Post Crd: {{ total_post_crd }}</p>
-    <p>Total Sales Fees: {{ total_sales_fees }}</p>
-    <p>Total Postage: {{ total_post }}</p>
-    <p>Total Fees All: {{ total_fees_all }}</p>
-    <!-- Display other calculated values -->
-  {% endif %}
+    {% for key, value in data.items %}
+
+      <li>{{ key|title }}: 
+
+        {% if value|floatformat %}
+            {{ value|floatformat:2 }}
+          {% else %}
+            {{ value }}
+          {% endif %}
+
+    {% endfor %}
+ 
+
