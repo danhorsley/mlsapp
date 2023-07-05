@@ -1,0 +1,47 @@
+<!-- cheat_sheet.html -->
+
+<form method="post" action="{% url 'cheat_sheet' %}">
+    {% csrf_token %}
+    
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" >
+    
+    <label for="isbn">ISBN:</label>
+    <input type="text" id="isbn" name="isbn" value="{{ default_isbn}}">
+    
+    <label for="wholesaler">Wholesaler:</label>
+    <input type="text" id="wholesaler" name="wholesaler">
+    
+    <label for="invoice_number">Invoice Number:</label>
+    <input type="text" id="invoice_number" name="invoice_number">
+    
+    <label for="start_date">Start Date:</label>
+    <input type="text" id="start_date" name="start_date" value="{{ start_date }}">
+  
+    <label for="end_date">End Date:</label>
+    <input type="text" id="end_date" name="end_date" value="{{ end_date }}">
+    
+    <button type="submit">Submit</button>
+  </form>
+  
+  {% if filtered_data %}
+    <h2>Filtered Data:</h2>
+    <ul>
+      {% for item in filtered_data %}
+        <li>{{ item.title }}</li>
+        <!-- Display other relevant information -->
+      {% endfor %}
+    </ul>
+    
+    <h2>Statistics:</h2>
+    <p>Total Units Bought: {{ total_units_bought }}</p>
+    <p>Total Units Sold: {{ total_units_sold }}</p>
+    <p>WAVG cost: {{ wavg_cost }}</p>
+    <p>Total Outlay: {{ total_outlay }}</p>
+    <p>Total Sales: {{ total_sales }}</p>
+    <p>Total Post Crd: {{ total_post_crd }}</p>
+    <p>Total Sales Fees: {{ total_sales_fees }}</p>
+    <p>Total Postage: {{ total_post }}</p>
+    <p>Total Fees All: {{ total_fees_all }}</p>
+    <!-- Display other calculated values -->
+  {% endif %}

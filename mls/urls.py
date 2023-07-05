@@ -15,7 +15,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from mlsapp.views import cheat_sheet
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('cheat-sheet/', cheat_sheet, name='cheat_sheet'),
 ]
