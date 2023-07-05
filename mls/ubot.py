@@ -60,7 +60,10 @@ def ubot(ws):
             df[i] = df.index.map(formatted_lists[i])
 
         df.columns = ['sr', 'offers', 'amzn_px', 'newfba', 'newfbm', 'bb']
-        buypx = offer_df[offer_df['ISBN']==isbn]['Price'].iloc[0]*ws_info.csv_disc
+        
+        fx_rate = 1 if ws_info.ccy == 'GBP' else 0.786
+        buypx = offer_df[offer_df['ISBN']==isbn]['Price'].iloc[0]*ws_info.csv_disc * fx_rate
+        
         df['min_px'] = make_min_px_col(df)
         df['sr'] = df['sr'].interpolate()
         df['sr'] = df['sr'].fillna(method="ffill")
