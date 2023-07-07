@@ -36,9 +36,13 @@ def spop():
                             www = -wd[sku_dict[row[4]]][2]
                             sd = SalesData(book = static.objects.filter(isbn13=sku_dict[row[4]])[0],
                                             date = my_date, 
-                                            quantity = int(row[6]), price = my_price, post_crd = float(row[15]),
+                                            quantity = int(row[6]), 
+                                            type = row[2],
+                                            order_id = row[3],
+                                            price = my_price, post_crd = float(row[15]),
                                             salesfees = float(row[22]), postage = my_postage, 
                                             wac = -wd[sku_dict[row[4]]][2], 
+
                             profit = my_price*float(row[6])+float(row[15])+float(row[22])+float(my_postage)-wd[sku_dict[row[4]]][2])
                             sd.save()
                         except:

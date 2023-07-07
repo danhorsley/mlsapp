@@ -1,11 +1,11 @@
-# from mlsapp.utils import *
-# from mlsapp.models import *
-# import requests
-# import numpy as np
-# import json
-# from bs4 import BeautifulSoup
-# import time
-# import random
+from mlsapp.utils import *
+from mlsapp.models import *
+import requests
+import numpy as np
+import json
+from bs4 import BeautifulSoup
+import time
+import random
 
 # def get_one_page(page_number=1):
 #     #get's one page from wholsaler b - isbn13, title, buy px

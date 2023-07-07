@@ -27,12 +27,23 @@ def cheat_sheet(request):
                                     .annotate(total_inv_qty=Sum(F('invoicedata__quantity')))\
                                     .annotate(wavg_cost = (F('total_inv_cost')/F('total_inv_qty')))
         
-        filtered_sales = SalesData.objects.filter(book_id=isbn)
+        #filtered_sales = SalesData.objects.filter(book_id=isbn)
+        filtered_sales = SalesData.objects.filter(book_id=isbn,type='Order').exclude(order_id__in=SalesData.objects.filter(type='Refund').values('order_id'))
+        filtered_adjustments = SalesData.objects.filter(book_id=isbn,type='Adjustment')
+            
         
         # Perform calculations on the filtered data
         total_outlay =  invoice_agg[0].total_inv_cost
         total_units_bought = filtered_data.aggregate(total_units_bought=Sum('invoicedata__quantity'))
         total_units_sold = filtered_sales.aggregate(total_units_sold=Sum('quantity'))
+
+        total_damaged = filtered_adjustments.aggregate(total_units_damaged=Sum('quantity'))
+        total_dam_adj = filtered_adjustments.aggregate(total_dam_adj=Sum(F('price') * F('quantity')))['total_dam_adj']
+        if total_dam_adj:
+            pass
+        else:
+            total_damaged['total_units_damaged']=0
+            total_dam_adj=0
         total_sales = filtered_sales.aggregate(total_sales=Sum(F('price') * F('quantity')))['total_sales']
         total_post_crd = filtered_sales.aggregate(total_pc=Sum('post_crd'))['total_pc']
         total_sales_fees = filtered_sales.aggregate(total_f=Sum('salesfees'))['total_f']
@@ -47,6 +58,7 @@ def cheat_sheet(request):
             'data' :{'title': filtered_data[0].title,
             'total_units_bought': total_units_bought['total_units_bought'],
             'total_units_sold': total_units_sold['total_units_sold'],
+            'total_units_damaged': total_damaged['total_units_damaged'],
             'wavg_cost' : invoice_agg[0].wavg_cost,
             'total_outlay' : total_outlay,
             'total_sales' : total_sales,
@@ -54,9 +66,12 @@ def cheat_sheet(request):
             'total_sales_fees' : total_sales_fees,
             'total_post' : total_post,
             'total_fees_all' :total_fees_all,
-            'actual_profit' : total_sales - total_outlay + total_fees_all,
+            'actual_profit' : total_sales - total_outlay + total_fees_all + total_dam_adj,
+            'trade_profit' : (total_sales - invoice_agg[0].wavg_cost*total_units_sold['total_units_sold']\
+                                +total_dam_adj + total_fees_all),
             'avg_sales_price' : avg_sales_price,
-            'profit_per_item' : (total_sales - total_outlay + total_fees_all)/total_units_sold['total_units_sold']
+            'profit_per_item' : (total_sales - invoice_agg[0].wavg_cost*total_units_sold['total_units_sold']\
+                                + total_fees_all)/total_units_sold['total_units_sold']
             #wholesalers
             #inventory remaining
             #roic

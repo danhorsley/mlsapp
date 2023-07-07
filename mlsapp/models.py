@@ -47,6 +47,8 @@ class SalesData(models.Model):
     postage = models.FloatField(default=0)
     wac = models.FloatField(default=1)
     profit = models.FloatField(default=1)
+    type = models.CharField(max_length=25, default = 'Order') #Order/Refund etc
+    order_id = models.CharField(max_length=25, default = 'Order') #not necessarily unique if refunded
     
 class SkuMap(models.Model):
     book = models.ForeignKey(static, on_delete=models.CASCADE,)
@@ -98,13 +100,13 @@ class WSInfo(models.Model):
     terms = models.CharField(max_length=100)
     url = models.URLField(default=None)
     part_comb = models.BooleanField(default=False) #is this part of combined xl ws sheet
-    #csv_cols = models.JSONField(default=dict)  #renames csv offers names to conform
+    csv_cols = models.JSONField(null=True)  #renames csv offers names to conform
     
 class Offers(models.Model):
     #populates offers past and present from all wholesalers
     #it has two foreign keys - the book and the wholesaler
     book = models.ForeignKey(static, on_delete=models.CASCADE,default='')
-    wholesaler = models.ForeignKey(WSInfo, on_delete=models.CASCADE,default='')
+    wholesaler = models.ForeignKey(WSInfo, on_delete=models.SET_NULL,default='',null=True)
     jf = models.JSONField(default=dict) #the json dictionary of the keepa data
     date = models.DateTimeField(default=timezone.datetime(2001, 1, 1, tzinfo=pytz.UTC)) #last time updated
     is_live = models.BooleanField(default=True) #is this still a live offer

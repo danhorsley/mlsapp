@@ -1,4 +1,3 @@
-from django.forms import PasswordInput
 import tabula
 from decouple import config
 from datetime import date, datetime
@@ -33,7 +32,7 @@ class iload:
         #params are top, left, bottom and right 
         #params3 is just to get date and inv number
         #'e' : {'ws' :'Bookmark', 'params' : [252,25,612,576], 'style' : 'pdf'},
-        self.ws_dict = {'a' : {'ws' :'Boon', 'params' : [288,72,792,540], 'params2' : [72,72,792,540], 
+        self.ws_dict = {'a' : {'ws' :'Boon', 'params1' : [288,72,792,540], 'params2' : [72,72,792,540], 
                                                     'params3' : [172,240,252,324], 'style' : 'pdf'},
                         'b' : {'ws' :'Hardwick', 'params' : [252,25,612,576], 'style' : 'xl'},
                         'c' : {'ws' :'Greenvale', 'params' : [252,25,612,576], 'params2' : [72, 288, 380.0, 410, 450.0, 500,545.0, 594.0],
@@ -122,7 +121,7 @@ class iload:
             elif self.ws_dict[ws]['style']=='xl':
                 if self.ws_dict[ws]=='h' :
                     comb_ws_list = ['Great Jones', 'Texas Bookman', 'Strathearn', 
-                                    'CKingdom', 'Bookmark', 'Pumpkin', 'SassandBelle', 'PoundWholesale', 'Greenvale']
+                                    'CKingdom', 'Bookmark', 'Pumpkin', 'SassandBelle', 'PoundWholesale', 'Greenvale','ckingdom']
                     existing_inv_nums = list(set([x[0] for x in InvoiceData.objects.filter(wholesaler__in = comb_ws_list).values_list('inv_num')]))
                 else:
                     existing_inv_nums = list(set([x[0] for x in InvoiceData.objects.filter(wholesaler = self.ws_dict[ws]['ws']).values_list('inv_num')]))
@@ -260,13 +259,21 @@ class iload:
             tab[0][['ISBN', 'Title']] = tab[0]['Description'].str.split(" - ", n=1,expand = True)
             tab[0][['cost', 'vat']] = tab[0]['Unit Price VAT'].str.split(" ", n=1, expand = True)
             tab[0] = tab[0][['ISBN','Qty','Title','cost','totalprice']]
+            
+        # elif ws=='ck':
+        #     tab = tabula.read_pdf(my_doc)
+        #     tab[0]=drop_nas(tab[0])
+        #     tab[0][['net_weight', 'ISBN']] = tab[0]['Net Weight (g) ISBN'].str.split(" ", expand = True)
+        #     tab[0][['totalprice', 'vat']] = tab[0]['Net Total £ Vat%'].str.split(" ", expand = True)
+        #     tab[0]=tab[0].rename(columns = {'Net £':'cost'})
+        #     tab[0] = tab[0][['ISBN','Qty','Title','cost','totalprice']]
 
         n = self.num_pages(my_doc)
         if len(tab[0])==0 and ws!='f':
             tab[0] = tabula.read_pdf(my_doc, pages=1,lattice=True)[1]
         tab[0]['cost'] = tab[0]['cost'].apply(lambda z:  numfix(z))
         tab[0]['totalprice'] = tab[0]['totalprice'].apply(lambda z:  numfix(z))
-        all_pages = [drop_nas(tab[0])]
+        all_pages = [drop_nas(tab[0])]  #too agresive
         #print(all_pages)
         if n>1:        
                 try:
