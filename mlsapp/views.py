@@ -50,7 +50,11 @@ def cheat_sheet(request):
         total_post = filtered_sales.aggregate(total_post=Sum('postage'))['total_post']
         total_fees_all = total_post_crd + total_sales_fees + total_post
         avg_sales_price = total_sales /filtered_sales.aggregate(total_units_sold=Sum('quantity'))['total_units_sold']
-        
+        min_sale_px = (invoice_agg[0].wavg_cost - total_post/total_units_sold['total_units_sold'])
+        if min_sale_px * 1.053 + 1< 5:
+            min_sale_px = min_sale_px * 1.053 + 1
+        else:
+            min_sale_px = min_sale_px * 1.153 + 1
         # Perform other calculations
         
         # Pass the data to the template
@@ -71,7 +75,8 @@ def cheat_sheet(request):
                                 +total_dam_adj + total_fees_all),
             'avg_sales_price' : avg_sales_price,
             'profit_per_item' : (total_sales - invoice_agg[0].wavg_cost*total_units_sold['total_units_sold']\
-                                + total_fees_all)/total_units_sold['total_units_sold']
+                                + total_fees_all)/total_units_sold['total_units_sold'],
+            'min_sale_px': min_sale_px,
             #wholesalers
             #inventory remaining
             #roic
