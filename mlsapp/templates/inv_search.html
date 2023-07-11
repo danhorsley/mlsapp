@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Invoice Search</title>
+</head>
+<body>
+    <h1>Invoice Search</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <select name="search_type">
+            <option value="wholesaler">Search by Wholesaler</option>
+            <option value="invoice_number">Search by Invoice Number</option>
+        </select>
+        <input type="text" name="search_query" placeholder="Enter search query">
+        <button type="submit">Search</button>
+    </form>
+    
+    {% if invoice_data %}
+        {% if p_and_l %}
+            <h2>Profit and Loss per Invoice Number:</h2>
+            <ul>
+                {% for inv_num, profit_loss in p_and_l.items %}
+                    <li>Invoice Number: {{ inv_num }}</li>
+                    <li>Profit and Loss: {{ profit_loss }}</li>
+                    <!-- Render bar chart using profit_loss value -->
+                {% endfor %}
+            </ul>
+        {% else %}
+            <h2>Invoice Details:</h2>
+            <ul>
+                {% for invoice in invoice_data %}
+                    <li>Invoice Number: {{ invoice.inv_num }}</li>
+                    <li>Wholesaler: {{ invoice.wholesaler }}</li>
+                    <!-- Display other relevant invoice details -->
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endif %}
+    
+    {% if sales_data %}
+        <h2>Book Breakdown for Invoice Number {{ sales_data.0.inv_num }}:</h2>
+        <ul>
+            {% for sale in sales_data %}
+                <li>Book Title: {{ sale.book.title }}</li>
+                <li>Quantity: {{ sale.quantity }}</li>
+                <!-- Display other relevant sales data -->
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>

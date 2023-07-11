@@ -20,7 +20,7 @@ def offpop(a_wholesaler):
     d = date.today()
     #my_date = date_to_sql(date.today())
     isbns_to_add=[]
-    existing_isbns = [x[0] for x in Offers.objects.all().values_list('book_id')]
+    existing_isbns = [x[0] for x in Offers.objects.filter(wholesaler = WSI_query[0].wholesaler).values_list('book_id')]
     
     is_live(isbn_list, existing_isbns, WSI_query[0]) #updates status of is_live in Offers
     
@@ -40,7 +40,7 @@ def offpop(a_wholesaler):
                 wait_for_internet()
             req = req_to_keepa(my_asin) #get info from keepa
             sleep_time = find_sleep_time(req, num_isbns_to_add) 
-            _ = Offers(book= my_book_id, jf = req.json()['products'][0], date = timezone.datetime(d.year, d.month, d.day, tzinfo=pytz.UTC),
+            _ = Offers(book = my_book_id, jf = req.json()['products'][0], date = timezone.datetime(d.year, d.month, d.day, tzinfo=pytz.UTC),
                        wholesaler = WSInfo.objects.filter(wholesaler=ws.wholesaler)[0], is_live=True)
             _.save()
             time.sleep(sleep_time)
@@ -61,6 +61,7 @@ def is_live(isbn_list, existing_isbns, ws):
                 temp_query.save()
         for isbn in isbn_list: #change to active anything that has come back into stock (rare but happens)
             if isbn in existing_isbns:
+                #print(isbn, ws, ws.wholesaler)
                 temp_query = Offers.objects.filter(book_id = isbn, wholesaler = ws.wholesaler)[0]
                 temp_query.is_live = 0
                 temp_query.save()

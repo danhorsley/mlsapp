@@ -94,3 +94,55 @@ def cheat_sheet(request):
                         }
     # Render the initial form
     return render(request, 'cheat_sheet.html', default_context)
+
+
+def inv_search(request):
+    if request.method == 'POST':
+        search_type = request.POST.get('search_type')
+        search_query = request.POST.get('search_query')
+        
+        if search_type == 'wholesaler':
+            invoice_data = InvoiceData.objects.filter(wholesaler=search_query)
+            
+            # Calculate profit and loss per invoice number
+            p_and_l = {}
+            for invoice in invoice_data:
+                sales_data = SalesData.objects.filter(inv_num=invoice.inv_num).order_by('date')
+                inventory = {}
+                total_profit = 0
+                
+                for sale in sales_data:
+                    if sale.book_id not in inventory:
+                        inventory[sale.book_id] = 0
+                    
+                    if inventory[sale.book_id] >= sale.quantity:
+                        # Sufficient quantity in inventory, deduct from inventory and calculate profit
+                        inventory[sale.book_id] -= sale.quantity
+                        total_profit += sale.quantity * (sale.price - sale.wac)
+                    else:
+                        # Insufficient quantity in inventory, calculate profit using available quantity
+                        available_quantity = inventory[sale.book_id]
+                        inventory[sale.book_id] = 0
+                        total_profit += available_quantity * (sale.price - sale.wac)
+                
+                p_and_l[invoice.inv_num] = total_profit
+            
+            context = {
+                'invoice_data': invoice_data,
+                'p_and_l': p_and_l
+            }
+            
+            return render(request, 'inv_search.html', context)
+        
+        elif search_type == 'invoice_number':
+            invoice_data = InvoiceData.objects.filter(inv_num=search_query)
+            sales_data = SalesData.objects.filter(inv_num=search_query)
+            
+            context = {
+                'invoice_data': invoice_data,
+                'sales_data': sales_data
+            }
+            
+            return render(request, 'inv_search.html', context)
+    
+    return render(request, 'inv_search.html')

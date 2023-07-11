@@ -15,9 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from mlsapp.views import cheat_sheet
+from mlsapp.views import cheat_sheet, inv_search
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('cheat-sheet/', cheat_sheet, name='cheat_sheet'),
+    path('inv_search/', inv_search, name='inv_search'),
 ]

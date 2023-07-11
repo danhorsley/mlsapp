@@ -32,7 +32,7 @@ class iload:
         #params are top, left, bottom and right 
         #params3 is just to get date and inv number
         #'e' : {'ws' :'Bookmark', 'params' : [252,25,612,576], 'style' : 'pdf'},
-        self.ws_dict = {'a' : {'ws' :'Boon', 'params1' : [288,72,792,540], 'params2' : [72,72,792,540], 
+        self.ws_dict = {'a' : {'ws' :'Boon', 'params' : [288,72,792,540], 'params2' : [72,72,792,540], 
                                                     'params3' : [172,240,252,324], 'style' : 'pdf'},
                         'b' : {'ws' :'Hardwick', 'params' : [252,25,612,576], 'style' : 'xl'},
                         'c' : {'ws' :'Greenvale', 'params' : [252,25,612,576], 'params2' : [72, 288, 380.0, 410, 450.0, 500,545.0, 594.0],
