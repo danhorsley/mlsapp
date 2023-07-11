@@ -8,7 +8,8 @@ import pytz
     
     
 
-def bulk_load_data(file_path = 'mlsapp_keepajson5.csv',my_ws='boon', batch_size=300):
+#def bulk_load_data(file_path = 'mlsapp_keepajson5.csv',my_ws='boon', batch_size=300):
+def bulk_load_data(file_path = 'mlsapp_keepajson16.csv',my_ws='bestsellers', batch_size=300):
     #with transaction.atomic():
         chunk_iterator = pd.read_csv(file_path, chunksize=batch_size)
 
