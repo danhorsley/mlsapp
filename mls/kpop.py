@@ -1,5 +1,5 @@
 from ast import excepthandler
-from mlsapp.models import KeepaJSONoffers, KeepaMAVG, InvoiceData, static, KeepaDataFXD, Offers
+from mlsapp.models import KeepaJSONoffers, KeepaMAVG, InvoiceData, static, KeepaDataFXD, Offers, WSInfo
 from django.db.models.functions import Concat
 from django.db.models import Value
 from decouple import config
@@ -45,13 +45,14 @@ def kpopoffers():
         req = requests.get(api_url + f"product?key={config('k_api_key')}&domain=2&asin={my_asin}&buybox=1&offers=20")
         counter -=1
         sleep_time = find_sleep_time(req, counter)
-        unique_wholesalers = (InvoiceData.objects.filter(book_id=isbn).values('wholesaler').distinct().order_by('wholesaler')
-                                        .values_list('wholesaler', flat=True)
-)
+        unique_wholesalers = InvoiceData.objects.filter(book_id=isbn).values('wholesaler').distinct().order_by('wholesaler').values_list('wholesaler', flat=True)
+
         try:
             for ws in unique_wholesalers:
                 #TODO fix code to link to model object not string
-                _ = Offers(book= static.objects.filter(isbn13=isbn)[0], jf = req.json()['products'][0], date = my_date, wholesaler = ws)
+                ws_object = WSInfo.objects.filter(wholesaler=ws)[0]
+                _ = Offers(book= static.objects.filter(isbn13=isbn)[0], jf = req.json()['products'][0], 
+                           date = my_date, wholesaler = ws_object)
                 _.save()
         except:
             print(f'could not add {isbn}')
