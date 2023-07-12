@@ -32,16 +32,16 @@ class iload:
         #params are top, left, bottom and right 
         #params3 is just to get date and inv number
         #'e' : {'ws' :'Bookmark', 'params' : [252,25,612,576], 'style' : 'pdf'},
-        self.ws_dict = {'a' : {'ws' :'Boon', 'params' : [288,72,792,540], 'params2' : [72,72,792,540], 
+        self.ws_dict = {'a' : {'ws' :'boon', 'params' : [288,72,792,540], 'params2' : [72,72,792,540], 
                                                     'params3' : [172,240,252,324], 'style' : 'pdf'},
-                        'b' : {'ws' :'Hardwick', 'params' : [252,25,612,576], 'style' : 'xl'},
-                        'c' : {'ws' :'Greenvale', 'params' : [252,25,612,576], 'params2' : [72, 288, 380.0, 410, 450.0, 500,545.0, 594.0],
+                        'b' : {'ws' :'hardwick', 'params' : [252,25,612,576], 'style' : 'xl'},
+                        'c' : {'ws' :'greenvale', 'params' : [252,25,612,576], 'params2' : [72, 288, 380.0, 410, 450.0, 500,545.0, 594.0],
                                                     'params3' : [144,396,200,560], 'style' : 'pdf'},
-                        'd' : {'ws' :'Gardners', 'params' : [72*2,0,5.5*72,12*72], 'params2' : [72, 86.4, 252.0, 331.2, 432, 684.0, 734.4, 766.8],
+                        'd' : {'ws' :'gardners', 'params' : [72*2,0,5.5*72,12*72], 'params2' : [72, 86.4, 252.0, 331.2, 432, 684.0, 734.4, 766.8],
                                                     'params3' : [1.5*72,0,2*72,12*72], 'style' : 'pdf'},
                         
                         'f' : {'ws' :'66', 'params3' : [108, 72, 151, 468], 'style' : 'pdf'},  #[126, 108, 151, 468]
-                        'g' : {'ws' :'Octagon', 'params' : [4.05*72, 0, 9*72, 8.5*72], 
+                        'g' : {'ws' :'octagon', 'params' : [4.05*72, 0, 9*72, 8.5*72], 
                                 'params2' : [0.75*72, 1.75*72, 2.5*72, 5.5*72, 7*72,7.5*72],
                                 'params3' : [3*72,2*72,3.5*72,8*72],'style' : 'pdf'},
                         'h' : {'ws': 'comb', 'params' : [252,25,612,576], 'style' : 'xl'},
@@ -182,8 +182,9 @@ class iload:
                 s.save()
                 st = static.objects.filter(isbn13=ci)[0]
             #print(r)
+            ws_object = WSInfo.objects.filter(wholesaler=r[7])[0]
             _ = InvoiceData(book = static.objects.filter(isbn13=ci)[0], 
-            quantity = r[1], title = r[2], cost = r[3], totalprice = r[4], date = r[5], inv_num = r[6], wholesaler = r[7])
+            quantity = r[1], title = r[2], cost = r[3], totalprice = r[4], date = r[5], inv_num = r[6], wholesaler = ws_object)
             _.save()   
             print(r, " saved to model ")
 
@@ -290,6 +291,7 @@ class iload:
             d = datetime.strptime(my_date, '%d/%m/%y')
             ret['date'] = f'{d.year}-{"{:02d}".format(d.month)}-{"{:02d}".format(d.day)}'
         ret['inv_num'] = inv_num
+        #ret['wholesaler'] = WSInfo.objects.filter(wholesaler=self.ws_dict[ws]['ws'])[0]
         ret['wholesaler'] = self.ws_dict[ws]['ws']
         
         print(ret)

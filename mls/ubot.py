@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import json
 import datetime
 import calendar
 from datetime import date, timedelta, datetime
@@ -19,9 +20,13 @@ def ubot(ws):
     stat_list = []
 
     for qq in query:
-        q = qq.jf
         isbn = qq.book_id
         print(isbn)
+        try:
+            q = json.loads(qq.jf)
+        except:
+            q = qq.jf
+        
 
         if isbn not in current_isbns or isbn not in isbns_with_data:
             continue

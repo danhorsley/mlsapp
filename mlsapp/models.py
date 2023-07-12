@@ -16,6 +16,20 @@ class static(models.Model):
     rrp = models.FloatField(default=0)
     category = models.CharField(max_length=50, default='')
     description = models.CharField(max_length=500, default='')
+    
+class WSInfo(models.Model):
+    wholesaler = models.CharField(max_length=100, primary_key=True, unique=True)
+    params1 = models.JSONField(default=dict)
+    renames = models.JSONField(default=dict)  #renames invoice names to conform
+    style = models.CharField(max_length=100)
+    tab_num = models.IntegerField() #to see how many tables there are before main table
+    csv_disc = models.FloatField(default=0.5) #discount to apply to initial stock csv price
+    inv_disc = models.FloatField(default=0.5) #discount to apply to final invoice price
+    ccy = models.CharField(max_length=10)
+    terms = models.CharField(max_length=100)
+    url = models.URLField(default=None)
+    part_comb = models.BooleanField(default=False) #is this part of combined xl ws sheet
+    csv_cols = models.JSONField(null=True)  #renames csv offers names to conform
 
 class InvoiceData(models.Model):
     book = models.ForeignKey(static, on_delete=models.CASCADE,)
@@ -25,7 +39,8 @@ class InvoiceData(models.Model):
     totalprice = models.FloatField(default=1)
     date = models.DateField()
     inv_num = models.IntegerField(default=0)
-    wholesaler = models.CharField(max_length=1)
+    #wholesaler = models.CharField(max_length=1)
+    wholesaler = models.ForeignKey(WSInfo, on_delete=models.SET_NULL,default='',null=True)
     
 class InvReader(models.Model):
     #params are inches in the order top,left, bottom right
@@ -87,20 +102,6 @@ class KeepaDataFXD(models.Model):
     w = models.IntegerField(default=0)
     wt = models.IntegerField(default=0)
     fmt = models.CharField(max_length=20, default='')
-    
-class WSInfo(models.Model):
-    wholesaler = models.CharField(max_length=100, primary_key=True, unique=True)
-    params1 = models.JSONField(default=dict)
-    renames = models.JSONField(default=dict)  #renames invoice names to conform
-    style = models.CharField(max_length=100)
-    tab_num = models.IntegerField() #to see how many tables there are before main table
-    csv_disc = models.FloatField(default=0.5) #discount to apply to initial stock csv price
-    inv_disc = models.FloatField(default=0.5) #discount to apply to final invoice price
-    ccy = models.CharField(max_length=10)
-    terms = models.CharField(max_length=100)
-    url = models.URLField(default=None)
-    part_comb = models.BooleanField(default=False) #is this part of combined xl ws sheet
-    csv_cols = models.JSONField(null=True)  #renames csv offers names to conform
     
 class Offers(models.Model):
     #populates offers past and present from all wholesalers

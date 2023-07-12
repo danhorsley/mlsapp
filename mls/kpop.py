@@ -1,5 +1,7 @@
 from ast import excepthandler
-from mlsapp.models import KeepaJSONoffers, KeepaMAVG, InvoiceData, static, KeepaDataFXD
+from mlsapp.models import KeepaJSONoffers, KeepaMAVG, InvoiceData, static, KeepaDataFXD, Offers
+from django.db.models.functions import Concat
+from django.db.models import Value
 from decouple import config
 import requests
 from datetime import date, datetime, timedelta
@@ -24,8 +26,9 @@ def find_sleep_time(my_req,amt_left=0):
 def kpopoffers():
     #take list of unique items from InvoiceData
     #request product from keep and store in json format in model
+    #{xx[0]:xx[1] for xx in InvoiceData.objects.all().values_list('book_id','wholesaler')}
     inv_isbns = list(set([x[0] for x in InvoiceData.objects.all().values_list('book_id')]))
-    existing_keepa = list(set([x[0] for x in KeepaJSONoffers.objects.all().values_list('book_id')]))
+    existing_keepa = list(set([x[0] for x in Offers.objects.all().values_list('book_id')]))
     api_url = "https://api.keepa.com/"
     my_date = date_to_sql(date.today())
     isbns_to_add = []
@@ -34,7 +37,7 @@ def kpopoffers():
             isbns_to_add.append(isb)
             
     counter = len(isbns_to_add)
-    print('number of names to add is ', len(counter))
+    print('number of names to add is ', counter)
     
     for isbn in isbns_to_add:
         my_asin = toISBN10(isbn)
@@ -42,9 +45,14 @@ def kpopoffers():
         req = requests.get(api_url + f"product?key={config('k_api_key')}&domain=2&asin={my_asin}&buybox=1&offers=20")
         counter -=1
         sleep_time = find_sleep_time(req, counter)
+        unique_wholesalers = (InvoiceData.objects.filter(book_id=isbn).values('wholesaler').distinct().order_by('wholesaler')
+                                        .values_list('wholesaler', flat=True)
+)
         try:
-            _ = KeepaJSONoffers(book= static.objects.filter(isbn13=isbn)[0], jf = req.json()['products'][0], date = my_date)
-            _.save()
+            for ws in unique_wholesalers:
+                #TODO fix code to link to model object not string
+                _ = Offers(book= static.objects.filter(isbn13=isbn)[0], jf = req.json()['products'][0], date = my_date, wholesaler = ws)
+                _.save()
         except:
             print(f'could not add {isbn}')
             pass
