@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import InvoiceData, SalesData, static
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Q
 
 def cheat_sheet(request):
     
@@ -16,19 +16,27 @@ def cheat_sheet(request):
         end_date = request.POST.get('end_date', last_invoice_date)
         
         # Query the database based on the filters
-        filtered_data = static.objects.filter(title__icontains=title, 
-                                              isbn13__icontains=isbn, #maybe should be __exact
-                                              invoicedata__wholesaler__icontains=wholesaler,
-                                              invoicedata__inv_num__icontains=invoice_number,
-                                              invoicedata__date__range=[start_date, end_date]
+        filtered_data = static.objects.filter((Q(title__icontains=title) & Q(isbn13__icontains=isbn)),
+                                              #isbn13__icontains=isbn, #maybe should be __exact
+                                              #invoicedata__wholesaler__icontains=wholesaler,
+                                              #invoicedata__inv_num__icontains=invoice_number,
+                                              #invoicedata__date__range=[start_date, end_date]
                                               )
-        
+        if len(filtered_data)>1:
+            context = {'data' : {f'title {i}' : f'{x.title} with  ISBN :   {x.isbn13} ' for i,x in enumerate(filtered_data) }}
+            return render(request, 'cheat_sheet.html', context)
+        elif len(filtered_data)==1:
+            theo_isbn = filtered_data[0].isbn13
+        else:
+            context = {'data' : {'nothing found' : 'please search again'}}
+            return render(request, 'cheat_sheet.html', context)
+            
         invoice_agg = filtered_data.annotate(total_inv_cost=Sum(F('invoicedata__cost')*F('invoicedata__quantity')))\
                                     .annotate(total_inv_qty=Sum(F('invoicedata__quantity')))\
                                     .annotate(wavg_cost = (F('total_inv_cost')/F('total_inv_qty')))
         
         #filtered_sales = SalesData.objects.filter(book_id=isbn)
-        filtered_sales = SalesData.objects.filter(book_id=isbn,type='Order').exclude(order_id__in=SalesData.objects.filter(type='Refund').values('order_id'))
+        filtered_sales = SalesData.objects.filter(book_id=theo_isbn, type='Order').exclude(order_id__in=SalesData.objects.filter(type='Refund').values('order_id'))
         filtered_adjustments = SalesData.objects.filter(book_id=isbn,type='Adjustment')
             
         
@@ -48,13 +56,22 @@ def cheat_sheet(request):
         total_post_crd = filtered_sales.aggregate(total_pc=Sum('post_crd'))['total_pc']
         total_sales_fees = filtered_sales.aggregate(total_f=Sum('salesfees'))['total_f']
         total_post = filtered_sales.aggregate(total_post=Sum('postage'))['total_post']
-        total_fees_all = total_post_crd + total_sales_fees + total_post
-        avg_sales_price = total_sales /filtered_sales.aggregate(total_units_sold=Sum('quantity'))['total_units_sold']
-        min_sale_px = (invoice_agg[0].wavg_cost - total_post/total_units_sold['total_units_sold'])
-        if min_sale_px * 1.053 + 1< 5:
-            min_sale_px = min_sale_px * 1.053 + 1
-        else:
-            min_sale_px = min_sale_px * 1.153 + 1
+        try:
+            total_fees_all = total_post_crd + total_sales_fees + total_post
+        except:
+            total_fees_all=0
+        try:    
+            avg_sales_price = total_sales /filtered_sales.aggregate(total_units_sold=Sum('quantity'))['total_units_sold']
+            min_sale_px = (invoice_agg[0].wavg_cost - total_post/total_units_sold['total_units_sold'])
+            if min_sale_px * 1.053 + 1< 5:
+                min_sale_px = min_sale_px * 1.053 + 1
+            else:
+                min_sale_px = min_sale_px * 1.153 + 1
+        except:
+            avg_sales_price=0
+            min_sale_px = 0
+        
+        
         # Perform other calculations
         
         # Pass the data to the template

@@ -1,4 +1,4 @@
-from ast import excepthandler
+import ast
 from mlsapp.models import KeepaJSONoffers, KeepaMAVG, InvoiceData, static, KeepaDataFXD, Offers, WSInfo
 from django.db.models.functions import Concat
 from django.db.models import Value
@@ -62,7 +62,11 @@ def kpopoffers():
 def KMAVG_df(my_isbn):
     #takes json from KeepaJSON for 1 isbn and turns it into month end avg model
     print(my_isbn)
-    idat = KeepaJSONoffers.objects.filter(book_id=my_isbn)[0].jf
+    idat = Offers.objects.filter(book_id=my_isbn)[0].jf
+    try:
+        idat = ast.literal_eval(idat)
+    except:
+        pass
     amzn_px = idat['csv'][0]
     new_px = idat['csv'][1]
     sr = idat['csv'][3]
@@ -104,7 +108,7 @@ def KMAVG_df(my_isbn):
 
 def KMAVG_pop(how = 'new'):
     #set how to 'new or all'
-    content = [x[0] for x in KeepaJSONoffers.objects.all().values_list('book_id')]
+    content = [x[0] for x in Offers.objects.all().values_list('book_id')]
     existing = [y[0] for y in KeepaMAVG.objects.all().values_list('book_id')]
     iterator = []
     if how == 'new':
@@ -129,9 +133,9 @@ def KMAVG_pop(how = 'new'):
 def kstatpop(how = 'new'):
     existing = [y[0] for y in KeepaDataFXD.objects.all().values_list('book_id')]
     if how == 'new':
-        content = KeepaJSONoffers.objects.exclude(book_id__in = existing)
+        content = Offers.objects.exclude(book_id__in = existing)
     else:
-        content = KeepaJSONoffers.objects.all()
+        content = Offers.objects.all()
     for c in content:
         _ = c.jf
         td = {}
