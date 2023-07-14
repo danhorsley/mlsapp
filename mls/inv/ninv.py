@@ -6,6 +6,7 @@ def upload_ws_info_from_csv(file_path='mls/WSInfo.csv'):
         reader = csv.DictReader(csv_file)
         for row in reader:
             ws_info, created = WSInfo.objects.get_or_create(wholesaler=row['wholesaler'])
+            print(row)
             ws_info.params1 = row['params1']
             ws_info.renames = row['renames']
             ws_info.style = row['style']

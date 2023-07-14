@@ -22,13 +22,13 @@ class WSInfo(models.Model):
     params1 = models.JSONField(default=dict)
     renames = models.JSONField(default=dict)  #renames invoice names to conform
     style = models.CharField(max_length=100)
-    tab_num = models.IntegerField() #to see how many tables there are before main table
-    csv_disc = models.FloatField(default=0.5) #discount to apply to initial stock csv price
-    inv_disc = models.FloatField(default=0.5) #discount to apply to final invoice price
-    ccy = models.CharField(max_length=10)
-    terms = models.CharField(max_length=100)
-    url = models.URLField(default=None)
-    part_comb = models.BooleanField(default=False) #is this part of combined xl ws sheet
+    tab_num = models.IntegerField(default=1,null=True) #to see how many tables there are before main table
+    csv_disc = models.FloatField(default=0.5,null=True) #discount to apply to initial stock csv price
+    inv_disc = models.FloatField(default=0.5,null=True) #discount to apply to final invoice price
+    ccy = models.CharField(max_length=10,null=True)
+    terms = models.CharField(max_length=100,null=True)
+    url = models.URLField(default=None,null=True)
+    part_comb = models.BooleanField(default=False,null=True) #is this part of combined xl ws sheet
     csv_cols = models.JSONField(null=True)  #renames csv offers names to conform
 
 class InvoiceData(models.Model):
