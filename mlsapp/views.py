@@ -38,6 +38,7 @@ def cheat_sheet(request):
         #filtered_sales = SalesData.objects.filter(book_id=isbn)
         filtered_sales = SalesData.objects.filter(book_id=theo_isbn, type='Order').exclude(order_id__in=SalesData.objects.filter(type='Refund').values('order_id'))
         filtered_adjustments = SalesData.objects.filter(book_id=isbn,type='Adjustment')
+        all_wholesalers = list(set([x['wholesaler'] for x in InvoiceData.objects.filter(book_id=theo_isbn).values('wholesaler')]))
             
         
         # Perform calculations on the filtered data
@@ -94,6 +95,7 @@ def cheat_sheet(request):
             'profit_per_item' : (total_sales - invoice_agg[0].wavg_cost*total_units_sold['total_units_sold']\
                                 + total_fees_all)/total_units_sold['total_units_sold'],
             'min_sale_px': min_sale_px,
+            'wholesalers' : all_wholesalers,
             #wholesalers
             #inventory remaining
             #roic
