@@ -1,6 +1,7 @@
 from django.shortcuts import render
-from .models import InvoiceData, SalesData, static
-from django.db.models import Sum, F, Q
+from .models import InvoiceData, SalesData, static, SkuMap
+from django.db.models import Sum, F, Q, Min
+from datetime import date, datetime
 
 def cheat_sheet(request):
     
@@ -39,6 +40,12 @@ def cheat_sheet(request):
         filtered_sales = SalesData.objects.filter(book_id=theo_isbn, type='Order').exclude(order_id__in=SalesData.objects.filter(type='Refund').values('order_id'))
         filtered_adjustments = SalesData.objects.filter(book_id=isbn,type='Adjustment')
         all_wholesalers = list(set([x['wholesaler'] for x in InvoiceData.objects.filter(book_id=theo_isbn).values('wholesaler')]))
+        first_date =  InvoiceData.objects.filter(book_id=theo_isbn).order_by('date').values('date').first()['date'].strftime('%Y-%m-%d')
+        last_date =  SalesData.objects.filter(book_id=theo_isbn).order_by('-date').values('date').first()['date'].strftime('%Y-%m-%d')
+        is_active = SkuMap.objects.filter(book_id=theo_isbn).aggregate(ia=Min('status'))['ia']
+        roic_date = date.today() if is_active=='Active' else datetime.strptime(last_date,'%Y-%m-%d').date()
+        days_active = (roic_date - datetime.strptime(first_date,'%Y-%m-%d').date()).days
+        
             
         
         # Perform calculations on the filtered data
@@ -71,6 +78,9 @@ def cheat_sheet(request):
         except:
             avg_sales_price=0
             min_sale_px = 0
+        actual_profit = total_sales - total_outlay + total_fees_all + total_dam_adj
+        ROIC = actual_profit/total_outlay
+        ROIC_annualized = (1 + ROIC)**(365/days_active) - 1
         
         
         # Perform other calculations
@@ -88,7 +98,7 @@ def cheat_sheet(request):
             'total_sales_fees' : total_sales_fees,
             'total_post' : total_post,
             'total_fees_all' :total_fees_all,
-            'actual_profit' : total_sales - total_outlay + total_fees_all + total_dam_adj,
+            'actual_profit' : actual_profit,
             'trade_profit' : (total_sales - invoice_agg[0].wavg_cost*total_units_sold['total_units_sold']\
                                 +total_dam_adj + total_fees_all),
             'avg_sales_price' : avg_sales_price,
@@ -96,6 +106,12 @@ def cheat_sheet(request):
                                 + total_fees_all)/total_units_sold['total_units_sold'],
             'min_sale_px': min_sale_px,
             'wholesalers' : all_wholesalers,
+            'first buy date' : first_date,
+            'last sale date' : last_date,
+            'is active?' : is_active,
+            'days active' : days_active,
+            'ROIC' : f'{ROIC * 100 : .7}%',
+            'ROIC annualized' : f'{ROIC_annualized*100 : .7}%'
             #wholesalers
             #inventory remaining
             #roic
