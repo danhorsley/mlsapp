@@ -19,8 +19,9 @@ def bulk_load_data(file_path = 'mlsapp_keepajson8.csv',my_ws='66', batch_size=30
 
         for chunk in chunk_iterator:
             objects=[]
-            my_next_id = Offers.objects.order_by('-id').first().id
+            
             for _, row in chunk.iterrows():
+                
                 counter+=1      
                 #print(row)
                 try:
@@ -32,7 +33,7 @@ def bulk_load_data(file_path = 'mlsapp_keepajson8.csv',my_ws='66', batch_size=30
                                 book = my_book_id, 
                                 wholesaler = WSInfo.objects.filter(wholesaler=my_ws)[0],)
                     if  my_bool:  
-                        obj.id =  my_next_id + counter    
+                        obj.id = Offers.objects.order_by('-id').first().id + counter 
                         obj.jf = row.jf
                         obj.date = timezone.datetime(d.year, d.month, d.day, tzinfo=pytz.UTC)
                         obj.is_live=True
@@ -46,7 +47,7 @@ def bulk_load_data(file_path = 'mlsapp_keepajson8.csv',my_ws='66', batch_size=30
                 #obj.save()
 
                 # if counter >= batch_size:
-            Offers.objects.bulk_create(objects)
+            Offers.objects.bulk_create(objects, ignore_conflicts=True)
             del objects[:]
             del chunk
             gc.collect()
