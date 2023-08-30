@@ -121,7 +121,8 @@ def update_hr(ws = 'bestsellers' , cutoff=300000, my_today = date.today()):
     #find last rank of each name and create list of isbns
     for q in query:
         try:
-            k_data = json.loads(q.jf)
+            #k_data = json.loads(q.jf)
+            k_data = q.jf
             temp_rank = avgmaker(k_data['csv'][3])[-1][1]
             temp_date = q.date.date()
             if temp_rank <= cutoff and temp_date < my_today and q.book_id in the_isbns: #isbns66: #isbnsboon:# and q.book_id in 
@@ -136,6 +137,8 @@ def update_hr(ws = 'bestsellers' , cutoff=300000, my_today = date.today()):
         my_asin = toISBN10(my_isbn)
         print(f'updating {my_isbn} with asin {my_asin}')
         temp_q = Offers.objects.filter(book_id=my_isbn)[0]
+        while not is_internet_available():
+                wait_for_internet()
         req = requests.get(api_url + f"product?key={config('k_api_key')}&domain=2&asin={my_asin}&buybox=1&offers=20")
         sleep_time = find_sleep_time(req,isbns_left)
         temp_q.jf = req.json()['products'][0]
