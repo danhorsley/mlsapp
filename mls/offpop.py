@@ -107,7 +107,7 @@ def is_internet_available():
 def wait_for_internet():
     while not is_internet_available():
         print("Internet connection is not available. Waiting...")
-        time.sleep(5)  # Adjust the delay as per your requirements
+        time.sleep(30)  # Adjust the delay as per your requirements
     
 
 def update_hr(ws = 'bestsellers' , cutoff=300000, my_today = date.today()):
@@ -139,12 +139,15 @@ def update_hr(ws = 'bestsellers' , cutoff=300000, my_today = date.today()):
         temp_q = Offers.objects.filter(book_id=my_isbn)[0]
         while not is_internet_available():
                 wait_for_internet()
-        req = requests.get(api_url + f"product?key={config('k_api_key')}&domain=2&asin={my_asin}&buybox=1&offers=20")
-        sleep_time = find_sleep_time(req,isbns_left)
-        temp_q.jf = req.json()['products'][0]
-        temp_q.date = my_date
-        temp_q.save()
-        time.sleep(sleep_time)
+        try:        
+            req = requests.get(api_url + f"product?key={config('k_api_key')}&domain=2&asin={my_asin}&buybox=1&offers=20")
+            sleep_time = find_sleep_time(req,isbns_left)
+            temp_q.jf = req.json()['products'][0]
+            temp_q.date = my_date
+            temp_q.save()
+            time.sleep(sleep_time)
+        except:
+            print(f"could not add {my_asin}")
         
 def avgmaker(my_list,depth=2, ignore_min1=True, ffill=False, nanfill=True, as_list=True, drop_count=True):
     #all objects stored under last day of the month - equal weight given to each data point

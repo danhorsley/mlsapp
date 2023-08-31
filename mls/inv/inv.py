@@ -47,9 +47,9 @@ class iload:
                         'h' : {'ws': 'comb', 'params' : [252,25,612,576], 'style' : 'xl'},
                         'moon': {'ws': 'moonraker', 'params'  : [288,72,792,540], 'params2' : [72,72,792,540], 'params3' : [172,240,252,324], 'style' : 'pdf'},
                         'bs': {'ws': 'bestsellers', 'params'  : [288,72,792,540], 'params2' : [72,72,792,540], 'params3' : [172,240,252,324], 'style' : 'pdf'}}
-        self.dodge = ['B07CL5KHVJ',	'B07CS7CDVC',	'B07CS33NSZ',	'B07CS33NSZ',	'B07DKHV41T',	'B07M7PGLZX',	'B07M7PGLZX',	'XDC349',	'B078YYHW4Z',	
-        'B094JNPG47',	'B07C53MWXM',	'B07N36YS16',	'B085LMMNXC',	'NOTE056',	'NOTE056',	'B079FPCSKS',	'B00OV3ZY76']
-                                
+        #self.dodge = ['B07CL5KHVJ',	'B07CS7CDVC',	'B07CS33NSZ',	'B07CS33NSZ',	'B07DKHV41T',	'B07M7PGLZX',	'B07M7PGLZX',	'XDC349',	'B078YYHW4Z',	
+        #'B094JNPG47',	'B07C53MWXM',	'B07N36YS16',	'B085LMMNXC',	'NOTE056',	'NOTE056',	'B079FPCSKS',	'B00OV3ZY76']
+        self.dodge = []                       
 
     def wipe_inv_db(self, which_ws ='all'):
         #DANGER DANGER DANGER - WIPES whole Invoice model
@@ -84,7 +84,7 @@ class iload:
                 return self.correct_isbn(my_isbn)
             else:
                 print(f"could not match {my_isbn}")
-                return my_isbn + "_badisbn"
+                return my_isbn #+ "_badisbn"
 
 
     def num_pages(self,doc):
@@ -120,8 +120,8 @@ class iload:
                                 self.save_to_model(r)
             elif self.ws_dict[ws]['style']=='xl':
                 if self.ws_dict[ws]=='h' :
-                    comb_ws_list = ['Great Jones', 'Texas Bookman', 'Strathearn', 
-                                    'CKingdom', 'Bookmark', 'Pumpkin', 'SassandBelle', 'PoundWholesale', 'Greenvale','ckingdom']
+                    comb_ws_list = ['greatjones', 'texas', 'strathearn', 
+                                    'ckingdom', 'bookmark', 'pumpkin', 'sassandbelle', 'poundwholesale', 'greenvale','britdeals']
                     existing_inv_nums = list(set([x[0] for x in InvoiceData.objects.filter(wholesaler__in = comb_ws_list).values_list('inv_num')]))
                 else:
                     existing_inv_nums = list(set([x[0] for x in InvoiceData.objects.filter(wholesaler = self.ws_dict[ws]['ws']).values_list('inv_num')]))
@@ -132,7 +132,7 @@ class iload:
                 tab = pd.read_excel(my_path + '/' + invoice_xl[0])
                 for i in range(len(tab)):
                     r = list(tab.iloc[i])
-                    if int(r[6]) in existing_inv_nums:
+                    if r[0] in [x.book_id for x in InvoiceData.objects.filter(inv_num=int(r[6]))]:
                         pass
                     else:
                         self.save_to_model(r)
@@ -276,7 +276,7 @@ class iload:
         tab[0]['totalprice'] = tab[0]['totalprice'].apply(lambda z:  numfix(z))
         all_pages = [drop_nas(tab[0])]  #too agresive
         #print(all_pages)
-        if n>1:        
+        if n>1:       
                 try:
                     page_read = tabula.read_pdf(my_doc, pages='all',guess=False, area=self.ws_dict[ws]['params2'],lattice=True)
                     for i in range(2,n+1):
