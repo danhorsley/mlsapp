@@ -29,6 +29,15 @@ def ihist(my_date=date(2023, 6, 1)):
 
     # Read the damages data from an Excel file into a DataFrame
     damages_df = pd.read_excel('damages.xlsx')
+    
+    # Read the ebay_sales data from an Excel file into a DataFrame
+    eb_df = pd.read_excel('ebay_sales.xlsx')
+    eb_df['Sale date'] = pd.to_datetime(eb_df['Sale date']).dt.date
+    eb_df = eb_df[eb_df['Sale date'] <= my_date]
+    eb_df['ebay_qty']=  eb_df['Qty_mult']*eb_df['Quantity']
+    eb_df = eb_df[['My code', 'ebay_qty']]
+    eb_df.columns = ['isbn', 'ebay_qty']
+    eb_agg=eb_df.groupby('isbn', as_index=False)['ebay_qty'].sum()
 
     # Convert the 'date' column to datetime objects and filter based on the provided date
     damages_df['date'] = pd.to_datetime(damages_df['date']).dt.date
@@ -42,15 +51,16 @@ def ihist(my_date=date(2023, 6, 1)):
 
     # Merge the main DataFrame with the damages DataFrame
     merged_df = merged_df.merge(damages_agg_df, how='left', left_on='book_id', right_on='isbn')
+    merged_df = merged_df.merge(eb_agg, how='left', left_on='book_id', right_on='isbn')
 
     # Fill any missing values with 0
     merged_df = merged_df.fillna(0)
 
     # Calculate the stock quantity by subtracting sales and damages from total inventory
-    merged_df['stock'] = merged_df['total_inv_qty'] - merged_df['total_sales_qty'] - merged_df['damages']
+    merged_df['stock'] = merged_df['total_inv_qty'] - merged_df['total_sales_qty'] - merged_df['damages'] - merged_df['ebay_qty']
 
     # Select the desired columns
-    final_df = merged_df[['book_id', 'title', 'total_inv_qty', 'total_sales_qty', 'damages', 'stock', 'wavg_cost']]
+    final_df = merged_df[['book_id', 'title', 'total_inv_qty', 'total_sales_qty', 'damages', 'ebay_qty','stock', 'wavg_cost']]
 
     # Replace negative stock values with 0
     final_df['stock'] = np.where(final_df['stock'] < 0, 0, final_df['stock'])
