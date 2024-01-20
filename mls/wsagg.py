@@ -1,4 +1,6 @@
-from django.db.models import F, Sum
+from django.db.models import Sum, F, ExpressionWrapper, fields, Func, Value
+from django.db.models.functions import Coalesce
+from datetime import date, datetime, timedelta
 from mlsapp.models import InvoiceData, SalesData
 
 def calculate_fifo_returns():
@@ -66,3 +68,37 @@ def calculate_fifo_returns():
             pass
         
     return invoice_returns, invoice_quantity_remaining
+
+
+def w_date_in():
+    #calculate avg weighted date in by supplier
+    ret_dict = {}
+    suppliers = InvoiceData.objects.values('wholesaler').distinct()
+
+    for supplier in suppliers:
+        wholesaler_id = supplier['wholesaler']
+        total_spent = InvoiceData.objects.filter(wholesaler=wholesaler_id).aggregate(Sum('totalprice'))['totalprice__sum']
+
+        # Calculate the weighted average date of capital on the way in
+        w_avg_date = InvoiceData.objects.filter(wholesaler=wholesaler_id)\
+                                        .annotate(year=F('date__year'), month=F('date__month'), day=F('date__day')) \
+                                        .annotate(numeric_date=ExpressionWrapper(
+                                        (F('year') -2000 )* 365 + F('month') * 30 + F('day'),  # Convert to numeric date format
+                                        output_field=fields.IntegerField())) \
+                                        .annotate(w_date = (F('numeric_date') * F('totalprice'))/total_spent)\
+                                        .aggregate(wavg_date=Sum('w_date'))['wavg_date']
+        ret_dict[wholesaler_id] = [timedelta(w_avg_date) + date(2000,1,1), total_spent]
+    return ret_dict
+
+
+#  (F('date') - date(2000, 1, 1))/86400000000,  # Convert to days
+#                                         output_field=fields.FloatField()))\
+    
+#   .annotate(julian_date=ExpressionWrapper(    
+#                                         F('date').toordinal(),  # Convert to numeric date format
+#                                         output_field=fields.IntegerField())) \
+    
+# .annotate(year=F('date__year'), month=F('date__month'), day=F('date__day')) \
+#             .annotate(numeric_date=ExpressionWrapper(
+#                 F('year') * 365 + F('month') * 30 + F('day'),  # Convert to numeric date format
+#                 output_field=fields.IntegerField())) \
