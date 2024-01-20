@@ -128,7 +128,11 @@ def update_hr(ws = 'bestsellers' , cutoff=300000, my_today = date.today()):
             if temp_rank <= cutoff and temp_date < my_today and q.book_id in the_isbns: #isbns66: #isbnsboon:# and q.book_id in 
                 isbns_to_update.append(q.book_id)
         except:
-            pass
+            try:
+                if q.jf=={}:
+                   isbns_to_update.append(q.book_id)
+            except: 
+                pass
     print(f'number of isbns to update is {len(isbns_to_update)}')
     api_url = "https://api.keepa.com/"
     isbns_left=len(isbns_to_update)
@@ -211,3 +215,5 @@ def dict_to_list(my_dict):
 def KTime(my_ktime):
     _ = (int(my_ktime) + 21564000)*60
     return datetime.utcfromtimestamp(_)
+
+    

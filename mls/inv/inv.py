@@ -121,7 +121,7 @@ class iload:
             elif self.ws_dict[ws]['style']=='xl':
                 if self.ws_dict[ws]=='h' :
                     comb_ws_list = ['greatjones', 'texas', 'strathearn', 
-                                    'ckingdom', 'bookmark', 'pumpkin', 'sassandbelle', 'poundwholesale', 'greenvale','britdeals']
+                                    'ckingdom', 'bookmark', 'pumpkin', 'sassandbelle', 'poundwholesale', 'greenvale','britdeals','creativemodels']
                     existing_inv_nums = list(set([x[0] for x in InvoiceData.objects.filter(wholesaler__in = comb_ws_list).values_list('inv_num')]))
                 else:
                     existing_inv_nums = list(set([x[0] for x in InvoiceData.objects.filter(wholesaler = self.ws_dict[ws]['ws']).values_list('inv_num')]))
@@ -251,7 +251,11 @@ class iload:
             tab[0][['net_weight', 'ISBN']] = tab[0]['Net Weight (g) ISBN'].str.split(" ", expand = True)
             tab[0][['totalprice', 'vat']] = tab[0]['Net Total £ Vat%'].str.split(" ", expand = True)
             tab[0]=tab[0].rename(columns = {'Net £':'cost'})
-            tab[0] = tab[0][['ISBN','Qty','Title','cost','totalprice']]
+            try:
+                tab[0] = tab[0][['ISBN','Qty','Title','cost','totalprice']]
+            except:
+                tab[0][['Order Reference','Title']]=tab[0]['Order Reference Title'].str.split(" Ne ",expand=True) #special case where ref was too long in 17333
+                tab[0] = tab[0][['ISBN','Qty','Title','cost','totalprice']]
 
         elif ws=='moon':
             tab = tabula.read_pdf(my_doc)
