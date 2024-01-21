@@ -126,3 +126,9 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# NOTEBOOK_ARGUMENTS = [
+#     '--ip', '0.0.0.0',
+#     '--port', '8888',
+# ]
+# IPYTHON_KERNEL_DISPLAY_NAME = 'Django Kernel'
