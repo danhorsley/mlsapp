@@ -8,7 +8,7 @@ from collections import Counter
 from mlsapp.models import Offers, WSInfo
 from  statistics import mean
 
-def ubot(ws):
+def ubot(ws,clearance=False, cpx=0.25):
     #takes offers table and turns it into dataframe
     query = Offers.objects.filter(wholesaler=ws)
     ws_info = WSInfo.objects.filter(wholesaler=ws)[0]
@@ -93,7 +93,13 @@ def ubot(ws):
     ret_df = pd.DataFrame(stat_list)
     ret_df.columns = ['isbn','title','30d','90d','alltime','std','min','max','pubyrs', 'offers','exp_mgn', 
                                                     'min_px', 'all_costs_per', 'wavg_cost','bb30','bb90','nonxmas','xmas']
-    ret_df.to_csv('mls/ubot_csvs/a_new' + ws_info.wholesaler + '.csv')
+    
+    if clearance:
+        ret_df = ret_df.assign(wavg_cost = cpx)
+        ret_df.to_csv('mls/ubot_csvs/a_new' + ws_info.wholesaler + '_clear' + '.csv')
+    else:
+        ret_df.to_csv('mls/ubot_csvs/a_new' + ws_info.wholesaler + '.csv')
+        
     return frame_list, stat_list
 
             
