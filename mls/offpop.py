@@ -1,16 +1,15 @@
-from mlsapp.models import Offers, static, WSInfo
-from mlsapp.utils import toISBN10, date_to_sql, null_to_blank, find_dims, find_sleep_time, get_google_description
+import calendar
+import subprocess #used for pinging a reliable server to check internet
 from datetime import date, time, datetime
 from django.utils import timezone
 import numpy as np
-import json
-import calendar
 from decouple import config
 import pandas as pd
 import requests
 import time
-import subprocess #used for pinging a reliable server to check internet
 import pytz
+from mlsapp.models import Offers, static, WSInfo
+from mlsapp.utils import toISBN10, date_to_sql, null_to_blank, find_dims, find_sleep_time, get_google_description
 
 def offpop(a_wholesaler):
     #pops offers model for a_wholesaler given as text
